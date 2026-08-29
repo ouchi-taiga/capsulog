@@ -15,9 +15,26 @@ if [ -f pyproject.toml ]; then
 fi
 
 # フロントと wrangler
+corepack enable pnpm
 if [ -f package.json ]; then
-  npm install
+  pnpm install
+fi
+
+# Cloudflare の API トークンを読む設定。トークン本体は volume の env に置く
+MARK="# Cloudflare の API トークン"
+if ! grep -qF "$MARK" "$HOME/.bashrc"; then
+  cat >> "$HOME/.bashrc" <<'EOS'
+
+# Cloudflare の API トークン。volume に置いて、コンテナを作り直しても残るようにしている
+if [ -f "$HOME/.config/.wrangler/env" ]; then
+  set -a
+  . "$HOME/.config/.wrangler/env"
+  set +a
+fi
+EOS
 fi
 
 echo "--- ready ---"
-echo "wrangler login で Cloudflare の認証を行う"
+if [ ! -f "$HOME/.config/.wrangler/env" ]; then
+  echo "Cloudflare のトークンが未設定。~/.config/.wrangler/env に CLOUDFLARE_API_TOKEN を置く"
+fi
