@@ -7,6 +7,9 @@ target/
 # uv（uv.lock はコミットする）
 .uv-cache/
 
+# pnpm（pnpm-lock.yaml はコミットする）
+.pnpm-store/
+
 # ビルド成果物
 build/
 .svelte-kit/
