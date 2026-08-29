@@ -1,0 +1,9 @@
+# Markdown は整形しない。表の桁揃えで差分が膨らむため
+*.md
+
+# 生成物
+node_modules/
+build/
+.svelte-kit/
+dist/
+target/

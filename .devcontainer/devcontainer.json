@@ -1,0 +1,71 @@
+{
+  "name": "capsulog",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:2": {
+      "version": "lts"
+    },
+    "ghcr.io/devcontainers/features/rust:1": {
+      "version": "latest",
+      "targets": "wasm32-unknown-unknown"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  },
+
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "svelte.svelte-vscode",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "DavidAnson.vscode-markdownlint",
+        "cloudflare.vscode-cloudflare",
+        "ms-vscode.live-server"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        },
+        "[rust]": {
+          "editor.defaultFormatter": "rust-lang.rust-analyzer"
+        },
+        "[markdown]": {
+          "editor.formatOnSave": false
+        },
+        "[sql]": {
+          "editor.formatOnSave": false
+        },
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true
+      }
+    }
+  },
+
+  "forwardPorts": [5173, 8787],
+  "portsAttributes": {
+    "5173": { "label": "SvelteKit" },
+    "8787": { "label": "Workers" }
+  },
+
+  "mounts": [
+    "source=capsulog-wrangler,target=/home/vscode/.config/.wrangler,type=volume",
+    "source=capsulog-claude,target=/home/vscode/.claude,type=volume"
+  ],
+
+  "remoteUser": "vscode",
+  "postCreateCommand": "bash .devcontainer/post-create.sh"
+}

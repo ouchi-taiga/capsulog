@@ -1,0 +1,12 @@
+[project]
+name = "capsulog"
+version = "0.1.0"
+description = "カプセログ - メーカー横断のカプセルトイ発売カレンダー"
+requires-python = ">=3.13"
+dependencies = []
+
+[tool.ruff]
+line-length = 100
+
+[tool.uv]
+package = false

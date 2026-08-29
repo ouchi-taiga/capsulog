@@ -1,6 +1,8 @@
-# カプセルトイ管理サービス（仮）
+# カプセログ
 
 メーカー横断のカプセルトイ発売カレンダーと、ラインナップ単位のコレクション管理サービス。
+
+リポジトリ名・パッケージ名は `capsulog`。
 
 ## ドキュメント
 
@@ -67,18 +69,29 @@ VS Code で「Reopen in Container」を実行すると、必要なものが揃�
 | Rust | 最新安定版 | devcontainer feature |
 | Python | 最新安定版 | uv が管理する |
 | uv | 最新 | 公式イメージからコピー |
+| Claude Code | 最新 | devcontainer feature |
 
 Rust には `wasm32-unknown-unknown` ターゲットを入れている。Workers が WASM 上で動くため。
 
 依存の更新で壊れたときは、バージョンを固定するのではなく原因を直す。固定するのは直せない理由があるときだけ。
 
-### Cloudflare の認証
+### 認証
 
-コンテナ内で一度だけ実行する。認証情報は volume に残るため、コンテナを作り直しても消えない。
+コンテナ内で一度だけ実行する。
 
 ```bash
-npx wrangler login
+npx wrangler login   # Cloudflare
+claude               # Claude Code。初回起動時に認証する
 ```
+
+**認証情報は volume に保存されるため、コンテナを作り直しても消えない。** ホスト側の認証情報をコンテナに渡す方法は取らない。コンテナ内のコードがホストの資格情報に触れられる状態を避けるため。
+
+| 用途 | volume | マウント先 |
+|---|---|---|
+| Cloudflare | `capsulog-wrangler` | `~/.config/.wrangler` |
+| Claude Code | `capsulog-claude` | `~/.claude` |
+
+Claude Code は設定ファイルがホーム直下にも散らばるため、`CLAUDE_CONFIG_DIR` で保存先を `~/.claude` にまとめている。
 
 ## ドキュメントの書き方
 

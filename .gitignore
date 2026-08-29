@@ -1,0 +1,29 @@
+# 依存
+node_modules/
+.venv/
+__pycache__/
+target/
+
+# uv（uv.lock はコミットする）
+.uv-cache/
+
+# ビルド成果物
+build/
+.svelte-kit/
+dist/
+
+# devcontainer（バージョンを固定しないため）
+.devcontainer/devcontainer-lock.json
+
+# Cloudflare
+.wrangler/
+.dev.vars
+
+# 環境
+.env
+.env.*
+!.env.example
+
+# エディタ・OS
+.DS_Store
+*.swp

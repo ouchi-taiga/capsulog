@@ -1,0 +1,606 @@
+<title>カプセログ 全体計画</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap">
+<style>
+  :root {
+    --bg:        #F7F8F9;
+    --surface:   #FFFFFF;
+    --line:      #E3E7EA;
+    --line-soft: #EDF0F2;
+    --ink:       #1B2027;
+    --ink-mid:   #4C555F;
+    --ink-soft:  #6B7480;
+    --accent:    #0F766E;
+    --accent-bg: #E3F2EF;
+    --wip:       #B45309;
+    --wip-bg:    #FBEEDC;
+    --idle-bg:   #EEF1F3;
+    --shadow:    0 1px 2px rgba(27,32,39,.05), 0 1px 8px rgba(27,32,39,.04);
+    --check:     #FFFFFF;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:        #14181C;
+      --surface:   #1B2126;
+      --line:      #2C343B;
+      --line-soft: #242B31;
+      --ink:       #E7ECEF;
+      --ink-mid:   #B0B9C1;
+      --ink-soft:  #838E98;
+      --accent:    #4FBFAF;
+      --accent-bg: #16302E;
+      --wip:       #D9973F;
+      --wip-bg:    #33270F;
+      --idle-bg:   #242B31;
+      --shadow:    0 1px 2px rgba(0,0,0,.3), 0 1px 8px rgba(0,0,0,.2);
+      --check:     #10201E;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:        #14181C;
+    --surface:   #1B2126;
+    --line:      #2C343B;
+    --line-soft: #242B31;
+    --ink:       #E7ECEF;
+    --ink-mid:   #B0B9C1;
+    --ink-soft:  #838E98;
+    --accent:    #4FBFAF;
+    --accent-bg: #16302E;
+    --wip:       #D9973F;
+    --wip-bg:    #33270F;
+    --idle-bg:   #242B31;
+    --shadow:    0 1px 2px rgba(0,0,0,.3), 0 1px 8px rgba(0,0,0,.2);
+    --check:     #10201E;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Noto Sans JP", system-ui, -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* ---------- header ---------- */
+
+  header { display: flex; flex-direction: column; gap: 6px; }
+
+  h1 {
+    font-family: "Zen Kaku Gothic New", "Noto Sans JP", sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    line-height: 1.35;
+    letter-spacing: .01em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .lede { color: var(--ink-soft); margin: 0; }
+
+  /* ---------- overall summary ---------- */
+
+  .summary {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .summary-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .summary-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .13em;
+    color: var(--ink-soft);
+  }
+
+  .summary-count {
+    font-variant-numeric: tabular-nums;
+    font-size: 15px;
+    color: var(--ink-mid);
+  }
+  .summary-count b {
+    font-family: "Zen Kaku Gothic New", sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .phase-dots { display: flex; gap: 20px; flex-wrap: wrap; }
+  .phase-dot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ink-mid);
+  }
+  .phase-dot .n {
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+    font-size: 12px;
+  }
+
+  .mini-bar {
+    width: 54px; height: 5px;
+    border-radius: 3px;
+    background: var(--idle-bg);
+    overflow: hidden;
+  }
+  .mini-bar span {
+    display: block; height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width .25s ease;
+  }
+
+  /* ---------- phase card ---------- */
+
+  .phase {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .phase-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--line-soft);
+    flex-wrap: wrap;
+  }
+
+  .phase-num {
+    font-family: "Zen Kaku Gothic New", sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .06em;
+    color: var(--accent);
+    background: var(--accent-bg);
+    border-radius: 5px;
+    padding: 3px 9px;
+    white-space: nowrap;
+  }
+
+  .phase-title {
+    font-family: "Zen Kaku Gothic New", "Noto Sans JP", sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    margin: 0;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .phase-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .status {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    border-radius: 4px;
+    padding: 2px 8px;
+    white-space: nowrap;
+  }
+  .status.done { color: var(--accent); background: var(--accent-bg); }
+  .status.wip  { color: var(--wip);    background: var(--wip-bg); }
+  .status.idle { color: var(--ink-soft); background: var(--idle-bg); }
+
+  .bar {
+    width: 100%; height: 3px;
+    background: var(--line-soft);
+  }
+  .bar span {
+    display: block; height: 100%;
+    background: var(--accent);
+    transition: width .25s ease;
+  }
+
+  /* ---------- items ---------- */
+
+  .group-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: var(--ink-soft);
+    padding: 16px 22px 6px;
+  }
+
+  ul { list-style: none; margin: 0; padding: 0; }
+
+  li {
+    border-top: 1px solid var(--line-soft);
+  }
+  .group-label + ul > li:first-child { border-top: none; }
+
+  label.item {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 4px 12px;
+    align-items: start;
+    padding: 11px 22px;
+    cursor: pointer;
+  }
+  label.item:hover { background: var(--line-soft); }
+
+  input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 17px; height: 17px;
+    margin: 3px 0 0;
+    border: 1.5px solid var(--ink-soft);
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+    transition: background .12s ease, border-color .12s ease;
+  }
+  input[type="checkbox"]::after {
+    content: "";
+    width: 9px; height: 5px;
+    border-left: 2px solid var(--check);
+    border-bottom: 2px solid var(--check);
+    transform: rotate(-45deg) translate(1px, -1px);
+    opacity: 0;
+  }
+  input[type="checkbox"]:checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  input[type="checkbox"]:checked::after { opacity: 1; }
+  input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .text { font-size: 14px; color: var(--ink); }
+  input:checked ~ .text { color: var(--ink-soft); text-decoration: line-through; text-decoration-thickness: 1px; }
+
+  .note {
+    grid-column: 2;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+
+  /* ---------- footer ---------- */
+
+  footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  button.reset {
+    font-family: inherit;
+    font-size: 12px;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+  }
+  button.reset:hover { color: var(--ink); border-color: var(--ink-soft); }
+  button.reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+
+  @media (max-width: 560px) {
+    .wrap { padding: 28px 14px 60px; }
+    label.item { padding: 11px 16px; }
+    .phase-head, .group-label { padding-left: 16px; padding-right: 16px; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <h1>カプセログ 全体計画</h1>
+    <p class="lede">メーカー横断の発売カレンダーと、ラインナップ単位のコレクション管理。</p>
+  </header>
+
+  <section class="summary">
+    <div class="summary-top">
+      <span class="summary-label">全 体 進 捗</span>
+      <span class="summary-count"><b id="doneAll">0</b> / <span id="totalAll">0</span> 完了</span>
+    </div>
+    <div class="phase-dots" id="phaseDots"></div>
+  </section>
+
+  <!-- ===== フェーズ0 ===== -->
+  <section class="phase" data-phase="0" data-name="事前調査・設計">
+    <div class="phase-head">
+      <span class="phase-num">PHASE 0</span>
+      <h2 class="phase-title">事前調査・設計</h2>
+      <div class="phase-meta">
+        <span class="status idle" data-status></span>
+        <span data-count></span>
+      </div>
+    </div>
+    <div class="bar"><span data-bar></span></div>
+
+    <div class="group-label">調 査</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p0-market" checked><span class="text">市場規模・ユーザー層の調査</span><span class="note">6年で5倍、母数は十分</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p0-rival" checked><span class="text">競合調査</span><span class="note">入荷情報と在庫検索は公式が押さえている。コレクション管理と交換が空白</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p0-tech" checked><span class="text">メーカーサイトの取得可能性調査</span><span class="note">奇譚クラブ・ターリン・バンダイの3社が取得しやすい</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p0-money" checked><span class="text">課金の成立性の検証</span><span class="note">相場は月350〜480円。目標にはMAU 3,000〜12,000が必要</span></label></li>
+    </ul>
+
+    <div class="group-label">要 件 定 義</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p0-scope" checked><span class="text">スコープとフェーズ構成の確定</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p0-model" checked><span class="text">データモデルの草案</span><span class="note">発売日は月単位まで。日単位のカラムは持たない</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p0-stack" checked><span class="text">技術構成の決定</span><span class="note">SvelteKit + Cloudflare Pages / Workers / D1</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p0-terms" checked><span class="text">各メーカーの利用規約を確認</span><span class="note">自動取得を禁じる条項はなし。ただし掲載内容の複製・転載は各社が禁じている</span></label></li>
+    </ul>
+  </section>
+
+  <!-- ===== フェーズ1 ===== -->
+  <section class="phase" data-phase="1" data-name="発売カレンダー">
+    <div class="phase-head">
+      <span class="phase-num">PHASE 1</span>
+      <h2 class="phase-title">発売カレンダー</h2>
+      <div class="phase-meta">
+        <span class="status idle" data-status></span>
+        <span data-count></span>
+      </div>
+    </div>
+    <div class="bar"><span data-bar></span></div>
+
+    <div class="group-label">実 証</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p1-kitan" checked><span class="text">奇譚クラブのAPIからデータを取得できるか確認</span><span class="note">953件。一覧はAPI、発売月と価格と全何種は詳細ページから取る</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-tarlin" checked><span class="text">ターリンのAPIからデータを取得できるか確認</span><span class="note">616件。発売月が入っていない商品が8%ある</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-bandai" checked><span class="text">バンダイの商品一覧をパースできるか確認</span><span class="note">500件。欠損なし。月フィルタが効かないため全件取得してから絞り込む</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-model-fix" checked><span class="text">取得できたデータを見てデータモデルを確定</span><span class="note">発売月はNULLを許容する。ラインナップ名が取れるのは奇譚クラブのみ</span></label></li>
+    </ul>
+
+    <div class="group-label">基 盤</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p1-name" checked><span class="text">サービス名を決める</span><span class="note">カプセログ。メーカーの商標を避けた</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-devcontainer" checked><span class="text">Dev Container を用意する</span><span class="note">Node・Rust・Python。バージョンは固定しない</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-repo"><span class="text">リポジトリを作成して初回コミット</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-cf-account" checked><span class="text">Cloudflareアカウントを作成</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-cf"><span class="text">Workers と D1 の疎通確認</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-schema"><span class="text">D1 のスキーマ作成</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-sveltekit"><span class="text">SvelteKit プロジェクトの初期化と Pages へのデプロイ</span></label></li>
+    </ul>
+
+    <div class="group-label">収 集 バ ッ チ</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p1-scraper"><span class="text">3社分の収集処理を実装</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-manner"><span class="text">1秒間隔・識別可能なUser-Agentの設定</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-diff"><span class="text">差分検知して変更分のみ更新</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-cron"><span class="text">日次の自動実行を設定</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-errlog"><span class="text">失敗時にログを残して次のソースへ進む</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-guard-count"><span class="text">取得件数が前回より3割以上減ったら取り込みを中止</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-guard-value"><span class="text">価格・全何種・発売月の範囲を検証し、外れが1割を超えたら中止</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-guard-keep"><span class="text">中止したメーカーは前回のデータを保つ</span><span class="note">誤ったデータで上書きしない</span></label></li>
+    </ul>
+
+    <div class="group-label">画 面</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p1-list"><span class="text">新作一覧（発売月でグルーピング）</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-f-month"><span class="text">発売月フィルタ</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-f-maker"><span class="text">メーカーフィルタ</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-search"><span class="text">キーワード検索</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-detail"><span class="text">商品詳細（全何種・価格・ラインナップ）</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-link"><span class="text">公式サイトへのリンク</span><span class="note">出典明示を兼ねる</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-mobile"><span class="text">スマホ表示の対応</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-f-price"><span class="text">価格帯フィルタ</span><span class="note">任意</span></label></li>
+    </ul>
+
+    <div class="group-label">達 成 基 準</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p1-g-auto"><span class="text">3メーカー以上を日次で自動収集できている</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-g-1000"><span class="text">商品データ 1,000件以上</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-g-self"><span class="text">自分が週3回以上使っている</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-g-fb"><span class="text">知り合い3人からフィードバックを得る</span></label></li>
+    </ul>
+  </section>
+
+  <!-- ===== フェーズ2 ===== -->
+  <section class="phase" data-phase="2" data-name="コレクション管理">
+    <div class="phase-head">
+      <span class="phase-num">PHASE 2</span>
+      <h2 class="phase-title">コレクション管理</h2>
+      <div class="phase-meta">
+        <span class="status idle" data-status></span>
+        <span data-count></span>
+      </div>
+    </div>
+    <div class="bar"><span data-bar></span></div>
+
+    <div class="group-label">基 盤</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p2-auth"><span class="text">ユーザー登録・ログイン</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-pwa"><span class="text">PWA化</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-terms"><span class="text">利用規約・プライバシーポリシーの掲載</span></label></li>
+    </ul>
+
+    <div class="group-label">機 能</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p2-watch"><span class="text">「気になる」登録</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-own"><span class="text">所持・未所持の記録</span><span class="note">ラインナップの1種ごとに記録する</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-dup"><span class="text">ダブり個数の記録</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-rate"><span class="text">コンプ率の表示</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-push"><span class="text">発売月が近づいたら通知</span><span class="note">入荷ではなく発売月のみを知らせる</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-photo"><span class="text">ユーザー投稿写真</span><span class="note">任意</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-share"><span class="text">コレクションのシェア画像生成</span><span class="note">任意</span></label></li>
+    </ul>
+
+    <div class="group-label">達 成 基 準</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p2-g-user"><span class="text">登録ユーザー 100人</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-g-coll"><span class="text">コレクション登録をしたユーザー 30人</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-g-mau"><span class="text">MAU 300人</span></label></li>
+    </ul>
+  </section>
+
+  <!-- ===== フェーズ3 ===== -->
+  <section class="phase" data-phase="3" data-name="ダブり交換マッチング">
+    <div class="phase-head">
+      <span class="phase-num">PHASE 3</span>
+      <h2 class="phase-title">ダブり交換マッチング</h2>
+      <div class="phase-meta">
+        <span class="status idle" data-status></span>
+        <span data-count></span>
+      </div>
+    </div>
+    <div class="bar"><span data-bar></span></div>
+
+    <div class="group-label">機 能</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p3-want"><span class="text">欲しい物の登録</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-match"><span class="text">マッチング処理</span><span class="note">双方のダブりと欲しい物が噛み合う相手を出す</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-result"><span class="text">マッチ結果の表示</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-contact"><span class="text">連絡先の受け渡し</span><span class="note">やりとりは外部のSNSに任せる</span></label></li>
+    </ul>
+
+    <div class="group-label">課 金</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p3-plan"><span class="text">無料・有料プランの線引きを決める</span><span class="note">無料はマッチ人数のみ、有料で詳細を開く</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-pay"><span class="text">決済の導入</span><span class="note">月額350〜480円と年額プラン</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-tokushoho"><span class="text">特定商取引法に基づく表記</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-rule"><span class="text">交換は当事者間の責任である旨を規約に明記</span></label></li>
+    </ul>
+
+    <div class="group-label">達 成 基 準</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p3-g-mau"><span class="text">MAU 2,000人</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-g-paid"><span class="text">有料ユーザー 50人</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-g-match"><span class="text">マッチ成立の報告 10件</span></label></li>
+    </ul>
+  </section>
+
+  <!-- ===== 継続 ===== -->
+  <section class="phase" data-phase="4" data-name="継続タスク">
+    <div class="phase-head">
+      <span class="phase-num">継 続</span>
+      <h2 class="phase-title">フェーズをまたぐタスク</h2>
+      <div class="phase-meta">
+        <span class="status idle" data-status></span>
+        <span data-count></span>
+      </div>
+    </div>
+    <div class="bar"><span data-bar></span></div>
+
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="c-sns"><span class="text">SNSアカウントの開設と発信</span><span class="note">最大のリスクは集客。開発と並行して進める</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="c-maker-add"><span class="text">対応メーカーを増やす</span><span class="note">タカラトミーアーツ、Qualia</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="c-monitor"><span class="text">収集失敗の監視</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="c-cost"><span class="text">無料枠の使用量を定期確認</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="c-terms-recheck"><span class="text">メーカーの規約とrobots.txtを半年ごとに再確認</span><span class="note">予告なく変更される</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="c-probe"><span class="text">検証スクリプトを定期実行して収集の破損を早期に見つける</span></label></li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>チェック状態はこのブラウザに保存されます。</span>
+    <button class="reset" id="reset" type="button">チェックをすべて解除</button>
+  </footer>
+
+</div>
+
+<script>
+  const KEY = "gacha-app-plan-v1";
+  const boxes = Array.from(document.querySelectorAll('input[data-id]'));
+
+  function load() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { saved = null; }
+    if (!saved) return;
+    boxes.forEach(b => { if (b.dataset.id in saved) b.checked = !!saved[b.dataset.id]; });
+  }
+
+  function save() {
+    const data = {};
+    boxes.forEach(b => { data[b.dataset.id] = b.checked; });
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
+  }
+
+  function render() {
+    const dots = document.getElementById("phaseDots");
+    dots.innerHTML = "";
+    let allDone = 0, allTotal = 0;
+
+    document.querySelectorAll(".phase").forEach(phase => {
+      const items = Array.from(phase.querySelectorAll('input[data-id]'));
+      const done = items.filter(i => i.checked).length;
+      const total = items.length;
+      const pct = total ? Math.round(done / total * 100) : 0;
+
+      allDone += done; allTotal += total;
+
+      phase.querySelector("[data-bar]").style.width = pct + "%";
+      phase.querySelector("[data-count]").textContent = done + " / " + total;
+
+      const st = phase.querySelector("[data-status]");
+      st.className = "status " + (done === total ? "done" : done > 0 ? "wip" : "idle");
+      st.textContent = done === total ? "完了" : done > 0 ? "進行中" : "未着手";
+
+      const dot = document.createElement("span");
+      dot.className = "phase-dot";
+      dot.innerHTML =
+        '<span class="mini-bar"><span style="width:' + pct + '%"></span></span>' +
+        '<span>' + phase.dataset.name + '</span>' +
+        '<span class="n">' + done + '/' + total + '</span>';
+      dots.appendChild(dot);
+    });
+
+    document.getElementById("doneAll").textContent = allDone;
+    document.getElementById("totalAll").textContent = allTotal;
+  }
+
+  boxes.forEach(b => b.addEventListener("change", () => { save(); render(); }));
+
+  document.getElementById("reset").addEventListener("click", () => {
+    boxes.forEach(b => { b.checked = false; });
+    save(); render();
+  });
+
+  load();
+  render();
+</script>
