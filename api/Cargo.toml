@@ -1,0 +1,22 @@
+[package]
+name = "capsulog-api"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+# cdylib は Workers 用の WASM。rlib は cargo doc と cargo test のために要る
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+worker = { version = "0.8", features = ["d1"] }
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true
+
+[lints.rust]
+missing_docs = "warn"
+
+[lints.clippy]
+missing_errors_doc = "warn"

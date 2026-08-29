@@ -1,0 +1,11 @@
+name = "capsulog-api"
+main = "build/worker/shim.mjs"
+compatibility_date = "2026-08-29"
+
+[build]
+command = "cargo install -q worker-build --version ^0.8 && worker-build --release"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "capsulog"
+database_id = "5f496d82-bf27-4a0b-8482-8b5447c356d5"
