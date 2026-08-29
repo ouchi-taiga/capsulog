@@ -1,5 +1,5 @@
 import re, html, json, ssl, time, urllib.request, collections, os
-UA = "gacha-app-research/0.1 (contact: ouchi@fintechsys.co.jp)"
+UA = "capsulog-probe/0.1 (contact: ouchi@fintechsys.co.jp)"
 # ターリンのサーバは中間証明書を配信していないため、こちらで補う
 CTX = ssl.create_default_context()
 CTX.load_verify_locations(os.path.join(os.path.dirname(os.path.abspath(__file__)), "globalsign-intermediate.pem"))

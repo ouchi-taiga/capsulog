@@ -1,6 +1,6 @@
 import re, html, json, time, urllib.request, collections
 
-UA = "gacha-app-research/0.1 (contact: ouchi@fintechsys.co.jp)"
+UA = "capsulog-probe/0.1 (contact: ouchi@fintechsys.co.jp)"
 def get(u):
     r = urllib.request.Request(u, headers={"User-Agent": UA})
     with urllib.request.urlopen(r, timeout=25) as f:

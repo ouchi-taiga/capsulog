@@ -401,7 +401,7 @@
     <ul>
       <li><label class="item"><input type="checkbox" data-id="p1-name" checked><span class="text">サービス名を決める</span><span class="note">カプセログ。メーカーの商標を避けた</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-devcontainer" checked><span class="text">Dev Container を用意する</span><span class="note">Node・Rust・Python。バージョンは固定しない</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p1-repo"><span class="text">リポジトリを作成して初回コミット</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-repo" checked><span class="text">リポジトリを作成して初回コミット</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-cf-account" checked><span class="text">Cloudflareアカウントを作成</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-cf"><span class="text">Workers と D1 の疎通確認</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-schema"><span class="text">D1 のスキーマ作成</span></label></li>
@@ -545,12 +545,15 @@
 </div>
 
 <script>
-  const KEY = "gacha-app-plan-v1";
+  const KEY = "capsulog-plan-v1";
+  const PREV_KEY = "gacha-app-plan-v1";
   const boxes = Array.from(document.querySelectorAll('input[data-id]'));
 
   function load() {
     let saved = null;
-    try { saved = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { saved = null; }
+    try {
+      saved = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem(PREV_KEY) || "null");
+    } catch (e) { saved = null; }
     if (!saved) return;
     boxes.forEach(b => { if (b.dataset.id in saved) b.checked = !!saved[b.dataset.id]; });
   }
@@ -558,7 +561,10 @@
   function save() {
     const data = {};
     boxes.forEach(b => { data[b.dataset.id] = b.checked; });
-    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+      localStorage.removeItem(PREV_KEY);
+    } catch (e) {}
   }
 
   function render() {
