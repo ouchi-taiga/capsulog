@@ -12,7 +12,8 @@ if [ -f pyproject.toml ]; then
   echo "python: $(python --version)"
 fi
 
-# フロントと wrangler
+# フロントと wrangler。ダウンロードの確認を出さない
+export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 corepack enable pnpm
 if [ -f package.json ]; then
   pnpm install

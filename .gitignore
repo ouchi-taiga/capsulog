@@ -6,6 +6,7 @@ target/
 
 # uv（uv.lock はコミットする）
 .uv-cache/
+.ruff_cache/
 
 # pnpm（pnpm-lock.yaml はコミットする）
 .pnpm-store/

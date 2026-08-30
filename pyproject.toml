@@ -7,6 +7,13 @@ dependencies = []
 
 [tool.ruff]
 line-length = 100
+# probe は取得可否を確かめるための検証コード。役目を終えており手を入れない
+exclude = ["probe"]
 
 [tool.uv]
 package = false
+
+[dependency-groups]
+dev = [
+    "ruff>=0.16.5",
+]

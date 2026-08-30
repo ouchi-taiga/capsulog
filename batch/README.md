@@ -12,6 +12,13 @@ uv run batch/main.py --maker kitan
 uv run batch/main.py --dry-run  # D1 に書き込まない
 ```
 
+## lint
+
+```bash
+ruff check .
+ruff format .
+```
+
 ## 対象メーカー
 
 | メーカー | 件数 | 取得方法 |

@@ -1,0 +1,4 @@
+{
+  "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python",
+  "python-envs.alwaysUseUv": false
+}
