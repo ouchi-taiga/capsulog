@@ -15,8 +15,9 @@ fi
 # フロントと wrangler。ダウンロードの確認を出さない
 export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 corepack enable pnpm
-if [ -f package.json ]; then
-  pnpm install
+if [ -f web/package.json ]; then
+  pnpm --dir web install
+  pnpm --dir web build
 fi
 
 # Cloudflare の API トークンを読む設定。トークン本体は volume の env に置く
@@ -29,6 +30,18 @@ if [ -f "$HOME/.config/.wrangler/env" ]; then
   set -a
   . "$HOME/.config/.wrangler/env"
   set +a
+fi
+EOS
+fi
+
+# web で作業することが多いため、シェルは web で開く
+MARK_CD="# 開いた直後は web にいる"
+if ! grep -qF "$MARK_CD" "$HOME/.bashrc"; then
+  cat >> "$HOME/.bashrc" <<'EOS'
+
+# 開いた直後は web にいる。pnpm dev をそのまま叩けるようにするため
+if [ "$PWD" = "/workspaces/capsulog" ] && [ -d /workspaces/capsulog/web ]; then
+  cd /workspaces/capsulog/web
 fi
 EOS
 fi
