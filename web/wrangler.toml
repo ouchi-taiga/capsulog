@@ -9,3 +9,4 @@ assets = { directory = ".svelte-kit/cloudflare", binding = "ASSETS" }
 binding = "DB"
 database_name = "capsulog"
 database_id = "5f496d82-bf27-4a0b-8482-8b5447c356d5"
+migrations_dir = "../db/migrations"
