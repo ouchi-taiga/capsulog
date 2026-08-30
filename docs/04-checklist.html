@@ -372,7 +372,7 @@
     <ul>
       <li><label class="item"><input type="checkbox" data-id="p0-scope" checked><span class="text">スコープとフェーズ構成の確定</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p0-model" checked><span class="text">データモデルの草案</span><span class="note">発売日は月単位まで。日単位のカラムは持たない</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p0-stack" checked><span class="text">技術構成の決定</span><span class="note">SvelteKit + Cloudflare Pages / Workers / D1</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p0-stack" checked><span class="text">技術構成の決定</span><span class="note">SvelteKit + Cloudflare Workers / D1</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p0-terms" checked><span class="text">各メーカーの利用規約を確認</span><span class="note">自動取得を禁じる条項はなし。ただし掲載内容の複製・転載は各社が禁じている</span></label></li>
     </ul>
   </section>
@@ -400,12 +400,12 @@
     <div class="group-label">基 盤</div>
     <ul>
       <li><label class="item"><input type="checkbox" data-id="p1-name" checked><span class="text">サービス名を決める</span><span class="note">カプセログ。メーカーの商標を避けた</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p1-devcontainer" checked><span class="text">Dev Container を用意する</span><span class="note">Node・Rust・Python。バージョンは固定しない</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-devcontainer" checked><span class="text">Dev Container を用意する</span><span class="note">Node・Python。バージョンは固定しない</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-repo" checked><span class="text">リポジトリを作成して初回コミット</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-cf-account" checked><span class="text">Cloudflareアカウントを作成</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p1-cf"><span class="text">Workers と D1 の疎通確認</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-cf"><span class="text">Workers と D1 の疎通確認</span><span class="note">server route から D1 を引く</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-schema"><span class="text">D1 のスキーマ作成</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p1-sveltekit"><span class="text">SvelteKit プロジェクトの初期化と Pages へのデプロイ</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-sveltekit"><span class="text">SvelteKit プロジェクトの初期化とデプロイ</span></label></li>
     </ul>
 
     <div class="group-label">収 集 バ ッ チ</div>

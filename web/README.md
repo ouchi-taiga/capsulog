@@ -1,12 +1,13 @@
 # web
 
-発売カレンダーの画面。SvelteKit の SPA として Cloudflare Pages に置く。
+発売カレンダーの画面と API。SvelteKit で書き、Cloudflare Workers 上で動く。
 
 ## 実行
 
 ```bash
-npm run dev
-npm run build
+pnpm dev
+pnpm build
+pnpm exec wrangler deploy
 ```
 
 ## 画面
@@ -30,3 +31,28 @@ npm run build
 公式サイトへのリンクは必須。出典明示を兼ねるため省略しない。
 
 スマホでの利用が主。モバイル表示を優先する。
+
+## API
+
+| メソッド | パス | 内容 |
+|---|---|---|
+| GET | `/api/products` | 商品一覧。発売月・メーカー・キーワード・価格で絞り込む |
+| GET | `/api/products/[id]` | 商品詳細。ラインナップを含む |
+| GET | `/api/makers` | メーカー一覧 |
+
+商品説明文と画像は DB に無い。
+返すのは事実情報のみで、`official_url` を必ず含める。出典明示のため。
+
+## D1 の扱い
+
+server route から `platform.env.DB` で触れる。
+接続文字列が無いため汎用の ORM は使えない。SQL は文字列で書く。
+
+```ts
+const { results } = await platform.env.DB
+  .prepare('SELECT * FROM products WHERE maker_id = ?')
+  .bind(makerId)
+  .all();
+```
+
+型は `src/lib/types.ts` に置き、画面と server route で共有する。

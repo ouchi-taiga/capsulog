@@ -8,10 +8,6 @@
     "ghcr.io/devcontainers/features/node:2": {
       "version": "lts"
     },
-    "ghcr.io/devcontainers/features/rust:1": {
-      "version": "latest",
-      "targets": "wasm32-unknown-unknown"
-    },
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
   },
@@ -39,9 +35,6 @@
         "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python",
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff"
-        },
-        "[rust]": {
-          "editor.defaultFormatter": "rust-lang.rust-analyzer"
         },
         "[markdown]": {
           "editor.formatOnSave": false

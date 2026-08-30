@@ -42,8 +42,7 @@
 | ディレクトリ | 役割 | 言語 |
 |---|---|---|
 | [batch/](./batch/) | データ収集。GitHub Actions で日次実行 | Python |
-| [api/](./api/) | APIエンドポイント。Cloudflare Workers | Rust / WASM |
-| [web/](./web/) | フロントエンド。Cloudflare Pages | SvelteKit |
+| [web/](./web/) | 画面と API。Cloudflare Workers | SvelteKit |
 | [db/](./db/) | D1 のスキーマとマイグレーション | SQL |
 | [probe/](./probe/) | メーカーからデータが取れるかの検証 | Python |
 
@@ -55,7 +54,7 @@
 
 ## 開発環境
 
-Dev Container で開発する。ホスト側に Node や Rust を入れる必要はない。
+Dev Container で開発する。ホスト側に Node や Python を入れる必要はない。
 
 VS Code で「Reopen in Container」を実行すると、必要なものが揃った状態で起動する。
 
@@ -66,12 +65,10 @@ VS Code で「Reopen in Container」を実行すると、必要なものが揃�
 | | 指定 | 供給元 |
 |---|---|---|
 | Node | LTS | devcontainer feature |
-| Rust | 最新安定版 | devcontainer feature |
+| pnpm | 最新 | corepack が用意する |
 | Python | 最新安定版 | uv が管理する |
 | uv | 最新 | 公式イメージからコピー |
 | Claude Code | 最新 | devcontainer feature |
-
-Rust には `wasm32-unknown-unknown` ターゲットを入れている。Workers が WASM 上で動くため。
 
 依存の更新で壊れたときは、バージョンを固定するのではなく原因を直す。固定するのは直せない理由があるときだけ。
 

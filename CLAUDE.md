@@ -7,8 +7,7 @@
 | ディレクトリ | 役割 | 言語 | README |
 |---|---|---|---|
 | `batch/` | メーカーからのデータ収集。日次実行 | Python | [batch/README.md](./batch/README.md) |
-| `api/` | APIエンドポイント。Cloudflare Workers 上で動く | Rust / WASM | [api/README.md](./api/README.md) |
-| `web/` | フロントエンド | SvelteKit | [web/README.md](./web/README.md) |
+| `web/` | 画面と API。Cloudflare Workers 上で動く | SvelteKit | [web/README.md](./web/README.md) |
 | `db/` | D1 のスキーマとマイグレーション | SQL | [db/README.md](./db/README.md) |
 | `probe/` | 各メーカーからデータが取れるかの検証 | Python | [probe/README.md](./probe/README.md) |
 | `docs/` | 調査・要件定義・設計・全体計画 | — | — |
@@ -96,8 +95,8 @@ feat: 3社分の収集処理を追加
 
 ## 開発環境
 
-Dev Container で開発する。ホスト側に Node や Rust を入れる必要はない。
+Dev Container で開発する。ホスト側に Node や Python を入れる必要はない。
 
-バージョンは固定せず最新に追従する。Node は LTS、Rust と Python は最新安定版。
+バージョンは固定せず最新に追従する。Node は LTS、Python は最新安定版。
 
 認証情報は volume に保存され、コンテナを作り直しても残る。**`~/.claude` と `~/.config/.wrangler` を消さないこと。**

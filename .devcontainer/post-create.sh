@@ -4,8 +4,6 @@ set -euo pipefail
 echo "--- versions ---"
 node --version
 npm --version
-rustc --version
-cargo --version
 uv --version
 
 # Python 環境。Python 本体も uv が用意する
