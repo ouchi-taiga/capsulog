@@ -58,103 +58,10 @@ D1 にクエリして返すだけのため、これらの制約に当たらな�
 
 ## 3. データモデル
 
-### 3.1 マイグレーション
+テーブル定義は `db/` に置く。
 
-wrangler で管理する。D1 は適用済みマイグレーションを自前のテーブルで持ち、wrangler がそれを見ている。他のツールを併用すると二重管理になる。
-
-**汎用の ORM は使えない。** D1 は Workers のバインディング経由でしか触れず、接続文字列が存在しない。
-
-### 3.2 テーブル定義
-
-```sql
-CREATE TABLE makers (
-  id           INTEGER PRIMARY KEY,
-  code         TEXT NOT NULL UNIQUE,   -- 'kitan' | 'tarlin' | 'bandai'
-  name         TEXT NOT NULL,
-  official_url TEXT NOT NULL,
-  source_type  TEXT NOT NULL           -- 'wp_api' | 'json_api' | 'html'
-);
-
-CREATE TABLE products (
-  id                 INTEGER PRIMARY KEY,
-  maker_id           INTEGER NOT NULL REFERENCES makers(id),
-  source_id          TEXT    NOT NULL,   -- メーカー側の識別子
-  name               TEXT    NOT NULL,
-  price              INTEGER,            -- 円
-  release_year_month TEXT,               -- 'YYYY-MM'
-  release_period     TEXT,               -- 'early' | 'mid' | 'late'
-  release_tbd        INTEGER NOT NULL DEFAULT 0,
-  total_variants     INTEGER,
-  official_url       TEXT    NOT NULL,
-  image_url          TEXT,               -- 保持のみ。フェーズ1では配信しない
-  content_hash       TEXT    NOT NULL,   -- 差分検知用
-  fetched_at         TEXT    NOT NULL,
-  created_at         TEXT    NOT NULL,
-  updated_at         TEXT    NOT NULL,
-  UNIQUE (maker_id, source_id)
-);
-
-CREATE TABLE variants (
-  id            INTEGER PRIMARY KEY,
-  product_id    INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-  name          TEXT    NOT NULL,
-  display_order INTEGER NOT NULL,
-  is_secret     INTEGER NOT NULL DEFAULT 0
-);
-
-CREATE INDEX idx_products_release ON products(release_year_month, maker_id);
-CREATE INDEX idx_products_maker   ON products(maker_id);
-CREATE INDEX idx_variants_product ON variants(product_id);
-```
-
-### 3.3 各カラムの根拠
-
-**`release_year_month` は月単位まで。日単位のカラムを持たない。**
-全メーカーが月単位までしか公開していない。日単位のカラムを作ると、存在しない精度を持っているかのような誤解を生む。
-
-**`release_year_month` は NULL を許容する。**
-ターリンには発売月が記載されていない商品が存在する（8%）。取得できないものを 0000-00 などで埋めない。
-
-**`release_period` は奇譚クラブ専用ではない。**
-上旬・中旬・下旬の3値。奇譚クラブのみが提供するが、他社が将来提供する可能性を残す。
-
-**`release_tbd` はバンダイの「未定」表現を保持する。**
-バンダイは「2027年1月未定」と、月は決まっているが日が未定であることを明示的にデータ化している。将来月ほど未定になる。
-
-**`total_variants` を正とする。**
-奇譚クラブのラインナップ要素には説明画像が混ざり、実件数が全何種を上回ることがある。表示・集計はこの値を使う。
-
-**`variants` を最初から分離する。**
-フェーズ2の「全5種中3種所持」がこのテーブルに依存する。フェーズ1の時点では奇譚クラブのみ埋まる。
-
-**`content_hash` で差分を検知する。**
-名前・価格・発売月・全何種を連結してハッシュ化し、変化がなければ更新しない。
-
-### 3.4 フェーズ2以降のテーブル
-
-```sql
-CREATE TABLE users (
-  id         INTEGER PRIMARY KEY,
-  created_at TEXT NOT NULL
-);
-
-CREATE TABLE user_watches (       -- 「気になる」
-  user_id    INTEGER NOT NULL REFERENCES users(id),
-  product_id INTEGER NOT NULL REFERENCES products(id),
-  created_at TEXT NOT NULL,
-  PRIMARY KEY (user_id, product_id)
-);
-
-CREATE TABLE user_collections (   -- 所持記録
-  user_id    INTEGER NOT NULL REFERENCES users(id),
-  variant_id INTEGER NOT NULL REFERENCES variants(id),
-  quantity   INTEGER NOT NULL DEFAULT 1,
-  updated_at TEXT NOT NULL,
-  PRIMARY KEY (user_id, variant_id)
-);
-```
-
-ダブりは `quantity - 1` で表す。所持数を持たせるほうが、所持フラグとダブり数を別に持つより整合性が崩れにくい。
+商品は `products`、ラインナップの各種類は `variants`、メーカーは `makers` に持つ。
+`variants` を最初から分けるのは、フェーズ2の「全5種中3種所持」がこのテーブルに依存するため。
 
 ---
 
@@ -337,32 +244,41 @@ Strapi の公開APIで、認証なしで全件返る。ページングは `_limi
 
 ### 6.1 各社の規約
 
-3社とも自動取得を禁じる条項はない。ただし全社が掲載内容の複製・転載を禁じている。
-
 | メーカー | 規約 | 自動取得の禁止 | 複製・転載 |
 |---|---|---|---|
-| バンダイ | ウェブサイトご利用条件 / 著作権・商標について | なし | 「私的使用その他法令等によって認められる範囲を超えて、掲載情報を使用（複製、改変、掲示、頒布、ライセンス、販売、出版等を含む）することは、バンダイの事前許諾がない限り、禁止」 |
 | 奇譚クラブ | プライバシーポリシーのみ | なし | 記載なし |
 | ターリン | プライバシーポリシーのみ | なし | 記載なし |
-| タカラトミーアーツ | — | なし | 「無断で転用、転載することはご遠慮ください」 |
+| タカラトミーアーツ | サイトポリシー | なし | 「無断で転用、転載することはご遠慮ください」 |
+| バンダイ | ガシャポンオフィシャルサイト利用条件 | **あり** | 掲載情報の使用を事前許諾なく禁止 |
 
-robots.txt はバンダイとターリンが404（存在しない）、奇譚クラブは `Disallow: /wp-admin/` のみで商品ページは対象外。
+**バンダイは収集対象にしない。** 利用条件が自動取得を明示的に禁じている。
+
+> 自動化された手段（自動ツール・プログラム・ロボットなどこれらに準ずる手段）を用いて
+> 掲載情報を取得/使用することはバンダイの事前許諾がない限り、禁止いたします。
+
+違反時は予告なくアクセス遮断を行うと明記されている。
+
+robots.txt はターリンが404（存在しない）、奇譚クラブとタカラトミーアーツは `Disallow: /wp-admin/` のみで商品ページは対象外。
 
 **robots.txt が無いことは許可の明示ではない。** 存在しない場合も1秒間隔を守る。
 
 ### 6.2 遵守事項
 
 - 収集するのは事実情報のみ（商品名・発売月・価格・全何種・メーカー名）。これらに著作権は発生しない
-- **商品説明文を保存・表示しない。** バンダイの複製禁止条項に該当する
+- **商品説明文を保存・表示しない。** 各社の複製禁止条項に該当する
 - 画像を自前で配信しない
 - 必ず出典を明示し、公式ページへリンクする
 - X（旧Twitter）の投稿は機械収集しない。利用規約がAPI外の自動収集を明確に禁じており、著作権法以前に契約違反となる
 
 著作権法30条の4により、情報解析目的の収集は適法。
 
-**禁じられているのは取得ではなく複製・転載である。** 事実情報だけを扱う限り抵触しないが、説明文や画像に手を出した時点で抵触する。この線が適法性の境界になる。
+収集対象の2社が禁じているのは複製・転載であり、取得そのものではない。
+事実情報だけを扱う限り抵触しないが、説明文や画像に手を出した時点で抵触する。
 
-規約は予告なく変更される。バンダイは「事前に予告することなく、この利用条件を変更することがあります」と明記している。**規約とrobots.txtは半年に1度再確認する。**
+**取得を禁じている社からは取らない。** 規約に自動取得の禁止があれば、対象から外す。
+
+規約は予告なく変更される。**規約とrobots.txtは半年に1度再確認する。**
+バンダイのように、後から自動取得の禁止条項が加わることがある。
 
 ### 6.3 画像の扱い
 
@@ -371,12 +287,17 @@ robots.txt はバンダイとターリンが404（存在しない）、奇譚ク
 | 案 | 判断 |
 |---|---|
 | ダウンロードして自サーバーから配信 | ❌ 転載にあたる |
-| 公式画像URLを直接参照（ホットリンク） | △ 相手サーバーに負荷をかける。フェーズ1では避ける |
+| 公式画像URLを直接参照（ホットリンク） | ❌ 著作権侵害には当たらないが、各社が掲示を禁じている |
 | **画像を出さず、商品名と公式リンクのみ** | ⭕ **フェーズ1はこれ** |
 | ユーザー投稿写真 | ⭕ フェーズ2以降。投稿者に著作権があり、規約で利用許諾を得られる |
 | メーカーに個別許諾を取る | 理想だが実績のない段階では難しい |
 
-`image_url` はDBに保持するが、フェーズ1では配信しない。フェーズ2でユーザー投稿写真に移行する。
+**メーカーに聞いても許諾は出せない。** タカラトミーアーツが明記している通り、
+メーカー自身が権利者から許諾を得て使っている立場のため、又貸しにあたる。
+
+`image_url` はDBに保持するが配信しない。フェーズ2でユーザー投稿写真に移行する。
+
+画像がない分の情報量は、ラインナップ名とタイポグラフィで補う。
 
 ---
 
