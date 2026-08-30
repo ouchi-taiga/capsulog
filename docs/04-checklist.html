@@ -373,15 +373,15 @@
       <li><label class="item"><input type="checkbox" data-id="p0-scope" checked><span class="text">スコープとフェーズ構成の確定</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p0-model" checked><span class="text">データモデルの草案</span><span class="note">発売日は月単位まで。日単位のカラムは持たない</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p0-stack" checked><span class="text">技術構成の決定</span><span class="note">SvelteKit + Cloudflare Workers / D1</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p0-terms" checked><span class="text">各メーカーの利用規約を確認</span><span class="note">自動取得を禁じる条項はなし。ただし掲載内容の複製・転載は各社が禁じている</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p0-terms" checked><span class="text">各メーカーの利用規約を確認</span><span class="note">バンダイは自動取得を明示的に禁止。対象から外した。他社は複製・転載の禁止のみ</span></label></li>
     </ul>
   </section>
 
   <!-- ===== フェーズ1 ===== -->
-  <section class="phase" data-phase="1" data-name="発売カレンダー">
+  <section class="phase" data-phase="1" data-name="カレンダーと棚">
     <div class="phase-head">
       <span class="phase-num">PHASE 1</span>
-      <h2 class="phase-title">発売カレンダー</h2>
+      <h2 class="phase-title">発売カレンダーとコレクション棚</h2>
       <div class="phase-meta">
         <span class="status idle" data-status></span>
         <span data-count></span>
@@ -393,8 +393,8 @@
     <ul>
       <li><label class="item"><input type="checkbox" data-id="p1-kitan" checked><span class="text">奇譚クラブのAPIからデータを取得できるか確認</span><span class="note">953件。一覧はAPI、発売月と価格と全何種は詳細ページから取る</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-tarlin" checked><span class="text">ターリンのAPIからデータを取得できるか確認</span><span class="note">616件。発売月が入っていない商品が8%ある</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p1-bandai" checked><span class="text">バンダイの商品一覧をパースできるか確認</span><span class="note">500件。欠損なし。月フィルタが効かないため全件取得してから絞り込む</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-model-fix" checked><span class="text">取得できたデータを見てデータモデルを確定</span><span class="note">発売月はNULLを許容する。ラインナップ名が取れるのは奇譚クラブのみ</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-cutout-poc"><span class="text">ブラウザ内の切り抜きを検証</span><span class="note">@imgly/background-removal。実物のカプセルトイで品質を見る</span></label></li>
     </ul>
 
     <div class="group-label">基 盤</div>
@@ -403,14 +403,16 @@
       <li><label class="item"><input type="checkbox" data-id="p1-devcontainer" checked><span class="text">Dev Container を用意する</span><span class="note">Node・Python。バージョンは固定しない</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-repo" checked><span class="text">リポジトリを作成して初回コミット</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-cf-account" checked><span class="text">Cloudflareアカウントを作成</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p1-cf"><span class="text">Workers と D1 の疎通確認</span><span class="note">server route から D1 を引く</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-cf" checked><span class="text">Workers と D1 の疎通確認</span><span class="note">server route から D1 を引けた</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-sveltekit" checked><span class="text">SvelteKit プロジェクトの初期化</span><span class="note">adapter-cloudflare。Tailwind・Vitest・Playwright</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-schema"><span class="text">D1 のスキーマ作成</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p1-sveltekit"><span class="text">SvelteKit プロジェクトの初期化とデプロイ</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-deploy"><span class="text">Workers へのデプロイ</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-r2"><span class="text">R2 バケットの用意</span><span class="note">棚の切り抜き画像を置く</span></label></li>
     </ul>
 
     <div class="group-label">収 集 バ ッ チ</div>
     <ul>
-      <li><label class="item"><input type="checkbox" data-id="p1-scraper"><span class="text">3社分の収集処理を実装</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-scraper"><span class="text">2社分の収集処理を実装</span><span class="note">奇譚クラブ・ターリン。バンダイからは取らない</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-manner"><span class="text">1秒間隔・識別可能なUser-Agentの設定</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-diff"><span class="text">差分検知して変更分のみ更新</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-cron"><span class="text">日次の自動実行を設定</span></label></li>
@@ -420,7 +422,7 @@
       <li><label class="item"><input type="checkbox" data-id="p1-guard-keep"><span class="text">中止したメーカーは前回のデータを保つ</span><span class="note">誤ったデータで上書きしない</span></label></li>
     </ul>
 
-    <div class="group-label">画 面</div>
+    <div class="group-label">カ レ ン ダ ー</div>
     <ul>
       <li><label class="item"><input type="checkbox" data-id="p1-list"><span class="text">新作一覧（発売月でグルーピング）</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-f-month"><span class="text">発売月フィルタ</span></label></li>
@@ -432,20 +434,32 @@
       <li><label class="item"><input type="checkbox" data-id="p1-f-price"><span class="text">価格帯フィルタ</span><span class="note">任意</span></label></li>
     </ul>
 
+    <div class="group-label">棚</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p1-shelf-cut"><span class="text">撮影写真の自動切り抜き</span><span class="note">端末内で処理。生画像をサーバーに送らない</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-shelf-retouch"><span class="text">切り抜きの手動リタッチ</span><span class="note">自動で失敗したときの逃げ道</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-shelf-guide"><span class="text">撮影ガイド</span><span class="note">無地の背景・正面。切り抜き品質の底上げ</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-shelf-place"><span class="text">テーマ什器への配置</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-shelf-share"><span class="text">共有画像の生成</span><span class="note">X 投稿用。拡散の主導線</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-shelf-link"><span class="text">商品マスタへの紐付け</span><span class="note">任意。フェーズ2のマッチ精度に効く</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-shelf-rate"><span class="text">コンプ率の表示</span><span class="note">任意。奇譚クラブのみ成立</span></label></li>
+    </ul>
+
     <div class="group-label">達 成 基 準</div>
     <ul>
-      <li><label class="item"><input type="checkbox" data-id="p1-g-auto"><span class="text">3メーカー以上を日次で自動収集できている</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-g-auto"><span class="text">2社を日次で自動収集できている</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-g-1000"><span class="text">商品データ 1,000件以上</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-g-self"><span class="text">自分が週3回以上使っている</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-g-share"><span class="text">棚の共有画像が X に投稿されている</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-g-fb"><span class="text">知り合い3人からフィードバックを得る</span></label></li>
     </ul>
   </section>
 
   <!-- ===== フェーズ2 ===== -->
-  <section class="phase" data-phase="2" data-name="コレクション管理">
+  <section class="phase" data-phase="2" data-name="交換マッチング">
     <div class="phase-head">
       <span class="phase-num">PHASE 2</span>
-      <h2 class="phase-title">コレクション管理</h2>
+      <h2 class="phase-title">ダブり交換マッチング</h2>
       <div class="phase-meta">
         <span class="status idle" data-status></span>
         <span data-count></span>
@@ -457,33 +471,35 @@
     <ul>
       <li><label class="item"><input type="checkbox" data-id="p2-auth"><span class="text">ユーザー登録・ログイン</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p2-pwa"><span class="text">PWA化</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-terms"><span class="text">利用規約・プライバシーポリシーの掲載</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-terms"><span class="text">利用規約・プライバシーポリシーの掲載</span><span class="note">Xハンドルの扱いと当事者間責任を明記</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-report"><span class="text">通報と削除申立ての窓口</span><span class="note">権利者からの申立てにも使う</span></label></li>
     </ul>
 
     <div class="group-label">機 能</div>
     <ul>
-      <li><label class="item"><input type="checkbox" data-id="p2-watch"><span class="text">「気になる」登録</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-own"><span class="text">所持・未所持の記録</span><span class="note">ラインナップの1種ごとに記録する</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-dup"><span class="text">ダブり個数の記録</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-rate"><span class="text">コンプ率の表示</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-push"><span class="text">発売月が近づいたら通知</span><span class="note">入荷ではなく発売月のみを知らせる</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-photo"><span class="text">ユーザー投稿写真</span><span class="note">任意</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-share"><span class="text">コレクションのシェア画像生成</span><span class="note">任意</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-entry"><span class="text">譲・求の登録</span><span class="note">棚のアイテムから、またはフリーテキスト。マスタには入れない</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-suggest"><span class="text">入力時のマスタ候補提示</span><span class="note">選べば厳密マッチが効く</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-area"><span class="text">ホームエリアの登録</span><span class="note">行ける場所。重なる人同士だけマッチ</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-match"><span class="text">相互一致のマッチング</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-fuzzy"><span class="text">曖昧一致の候補提示</span><span class="note">正規化文字列で。自動確定しない</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-x"><span class="text">Xハンドルの相互開示</span><span class="note">マッチ成立時のみ・相互同意で</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-limit"><span class="text">同時出品数・交換回数の上限</span><span class="note">転売対策</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-review"><span class="text">交換完了時の相互評価</span><span class="note">任意</span></label></li>
     </ul>
 
     <div class="group-label">達 成 基 準</div>
     <ul>
       <li><label class="item"><input type="checkbox" data-id="p2-g-user"><span class="text">登録ユーザー 100人</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-g-coll"><span class="text">コレクション登録をしたユーザー 30人</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-g-mau"><span class="text">MAU 300人</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-g-entry"><span class="text">交換出品をしたユーザー 30人</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p2-g-match"><span class="text">マッチ成立の報告 10件</span></label></li>
     </ul>
   </section>
 
   <!-- ===== フェーズ3 ===== -->
-  <section class="phase" data-phase="3" data-name="ダブり交換マッチング">
+  <section class="phase" data-phase="3" data-name="収益化と高度化">
     <div class="phase-head">
       <span class="phase-num">PHASE 3</span>
-      <h2 class="phase-title">ダブり交換マッチング</h2>
+      <h2 class="phase-title">収益化と高度化</h2>
       <div class="phase-meta">
         <span class="status idle" data-status></span>
         <span data-count></span>
@@ -491,27 +507,25 @@
     </div>
     <div class="bar"><span data-bar></span></div>
 
-    <div class="group-label">機 能</div>
-    <ul>
-      <li><label class="item"><input type="checkbox" data-id="p3-want"><span class="text">欲しい物の登録</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p3-match"><span class="text">マッチング処理</span><span class="note">双方のダブりと欲しい物が噛み合う相手を出す</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p3-result"><span class="text">マッチ結果の表示</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p3-contact"><span class="text">連絡先の受け渡し</span><span class="note">やりとりは外部のSNSに任せる</span></label></li>
-    </ul>
-
     <div class="group-label">課 金</div>
     <ul>
-      <li><label class="item"><input type="checkbox" data-id="p3-plan"><span class="text">無料・有料プランの線引きを決める</span><span class="note">無料はマッチ人数のみ、有料で詳細を開く</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p3-pay"><span class="text">決済の導入</span><span class="note">月額350〜480円と年額プラン</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-plan"><span class="text">棚プレミアムの線引きを決める</span><span class="note">登録無制限・カスタムテーマ・バックアップ。交換からは取らない</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-pay"><span class="text">決済の導入</span><span class="note">月額200〜300円と年額プラン</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p3-tokushoho"><span class="text">特定商取引法に基づく表記</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p3-rule"><span class="text">交換は当事者間の責任である旨を規約に明記</span></label></li>
+    </ul>
+
+    <div class="group-label">高 度 化</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p3-embed"><span class="text">テキスト embedding による曖昧マッチの精度向上</span><span class="note">Workers AI + Vectorize</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-image"><span class="text">画像類似検索</span><span class="note">未登録品のマッチングと出品画像の重複検知</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-gate"><span class="text">出品時の画像重複検知と初回出品数制限</span><span class="note">エア出品対策</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p3-store"><span class="text">カプセルトイ専門店への送客・交換会連携</span></label></li>
     </ul>
 
     <div class="group-label">達 成 基 準</div>
     <ul>
       <li><label class="item"><input type="checkbox" data-id="p3-g-mau"><span class="text">MAU 2,000人</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p3-g-paid"><span class="text">有料ユーザー 50人</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p3-g-match"><span class="text">マッチ成立の報告 10件</span></label></li>
     </ul>
   </section>
 
@@ -529,11 +543,11 @@
 
     <ul>
       <li><label class="item"><input type="checkbox" data-id="c-sns"><span class="text">SNSアカウントの開設と発信</span><span class="note">最大のリスクは集客。開発と並行して進める</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="c-maker-add"><span class="text">対応メーカーを増やす</span><span class="note">タカラトミーアーツ、Qualia</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="c-maker-add"><span class="text">対応メーカーを増やす</span><span class="note">タカラトミーアーツは probe で検証してから。規約上の障害はない</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="c-monitor"><span class="text">収集失敗の監視</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="c-cost"><span class="text">無料枠の使用量を定期確認</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="c-terms-recheck"><span class="text">メーカーの規約とrobots.txtを半年ごとに再確認</span><span class="note">予告なく変更される</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="c-probe"><span class="text">検証スクリプトを定期実行して収集の破損を早期に見つける</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="c-terms-recheck"><span class="text">メーカーの規約とrobots.txtを半年ごとに再確認</span><span class="note">バンダイのように、後から禁止条項が加わることがある</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="c-probe"><span class="text">検証スクリプトを定期実行して収集の破損を早期に見つける</span><span class="note">バンダイのものは実行しない</span></label></li>
     </ul>
   </section>
 

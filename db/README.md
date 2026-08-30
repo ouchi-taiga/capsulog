@@ -25,7 +25,9 @@ pnpm --dir ../web exec wrangler d1 migrations apply capsulog --remote
 | `products` | 商品 | 商品。「○○シリーズ 全5種」の単位 |
 | `variants` | ラインナップ | 全5種の1種1種。タイプA、シークレットなど |
 
-フェーズ2以降で `users`（ユーザー）、`user_watches`（気になる）、`user_collections`（所持記録）が加わる。
+マスタに書き込むのは収集バッチと運営だけ。**ユーザー入力はマスタに入れない。**
+
+フェーズ2以降で `users`（ユーザー）、`match_entries`（譲・求）、`user_collections`（所持記録）が加わる。
 
 ## テーブル定義
 
@@ -41,6 +43,7 @@ CREATE TABLE makers (
 CREATE TABLE products (
   id                 INTEGER PRIMARY KEY,
   maker_id           INTEGER NOT NULL REFERENCES makers(id),
+  origin             TEXT    NOT NULL DEFAULT 'batch',  -- 'batch' | 'manual'
   source_id          TEXT    NOT NULL,   -- メーカー側の識別子
   name               TEXT    NOT NULL,
   price              INTEGER,            -- 円
@@ -87,18 +90,22 @@ CREATE INDEX idx_variants_product ON variants(product_id);
 
 | `release_precision` | `release_detail` | 出す社 |
 |---|---|---|
-| `month` | NULL | ターリン、バンダイ |
+| `month` | NULL | ターリン |
 | `period` | `early` \| `mid` \| `late` | 奇譚クラブ |
-| `week` | `1`〜`5` | タカラトミーアーツ（フェーズ1の対象外） |
+| `week` | `1`〜`5` | タカラトミーアーツ（追加候補） |
 
 新しい粒度が出てきても、`release_precision` に値を足すだけで済む。
 
-**`release_tbd` はバンダイの「未定」表現を保持する。**
-バンダイは「2027年1月未定」と、月は決まっているが日が未定であることを明示的にデータ化している。
+**`release_tbd` は「月は決まっているが日が未定」を表す。**
+「2027年1月未定」のような表現を落とさずに持つ。
 
 **`release_raw` は発売時期の生値を残す。**
 「2026年9月下旬」のような元の文字列。
 パースが誤ったとき、正規化後の値だけでは原因を追えない。
+
+**`origin` は収集分と手入力分を区別する。**
+バンダイは規約により自動収集できない。運営が手で入れる場合は `manual` になる。
+バッチは `batch` の行しか触らない。
 
 **`source_id` はメーカーごとに意味が違う。**
 奇譚クラブは記事ID、ターリンは商品ID、バンダイは JAN コードが入る。
@@ -121,7 +128,6 @@ JAN 専用のカラムは作らない。埋まるのが1社だけになるため
 | 商品説明文 | 事実情報のみを収集する。各社が転載を禁じている |
 | 画像の実体 | 版権物であり再配布できない |
 | 日単位の発売日 | メーカーが公開していない |
-| 対象年齢 | バンダイのみ提供。フェーズ1で表示しない |
 | 規約の確認日 | DB ではなくチェックリストで管理する |
 
 ### 画像について
@@ -136,7 +142,7 @@ JAN 専用のカラムは作らない。埋まるのが1社だけになるため
 データを取得させてもらう立場でもあり、収集自体を止められるリスクを負わない。
 
 画像がない分の情報量は、ラインナップ名の表示で補う。
-「全5種」の中身を出せるのは3社で奇譚クラブだけであり、競合にない要素でもある。
+「全5種」の中身を出せるのは奇譚クラブだけであり、競合にない要素でもある。
 
 ## フェーズ2以降のテーブル
 
@@ -155,11 +161,16 @@ CREATE TABLE users (
   created_at TEXT NOT NULL
 );
 
-CREATE TABLE user_watches (       -- 「気になる」
-  user_id    INTEGER NOT NULL REFERENCES users(id),
-  product_id INTEGER NOT NULL REFERENCES products(id),
-  created_at TEXT NOT NULL,
-  PRIMARY KEY (user_id, product_id)
+CREATE TABLE match_entries (      -- 譲・求
+  id              INTEGER PRIMARY KEY,
+  user_id         INTEGER NOT NULL REFERENCES users(id),
+  kind            TEXT    NOT NULL,   -- 'offer' | 'want'
+  product_id      INTEGER REFERENCES products(id),
+  variant_id      INTEGER REFERENCES variants(id),
+  free_text       TEXT,               -- マスタに無い商品の記述
+  normalized_text TEXT,               -- 曖昧一致用の正規化文字列
+  photo_key       TEXT,               -- R2 のキー
+  created_at      TEXT    NOT NULL
 );
 
 CREATE TABLE user_collections (   -- 所持記録
@@ -170,6 +181,12 @@ CREATE TABLE user_collections (   -- 所持記録
   PRIMARY KEY (user_id, variant_id)
 );
 ```
+
+**`match_entries` はマスタ参照かフリーテキストのどちらかが埋まる。**
+ユーザー入力がマスタに昇格することはない。
+荒れても被害はその出品1件に閉じる。
+
+曖昧一致は `normalized_text` で行い、候補の提示までに留める。確定するのは人。
 
 ダブりは `quantity - 1` で表す。
 所持数を持たせるほうが、所持フラグとダブり数を別に持つより整合性が崩れにくい。
