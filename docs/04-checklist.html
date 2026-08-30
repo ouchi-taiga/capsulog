@@ -337,7 +337,7 @@
 
   <header>
     <h1>カプセログ 全体計画</h1>
-    <p class="lede">メーカー横断の発売カレンダーと、ラインナップ単位のコレクション管理。</p>
+    <p class="lede">カプセルトイの発売カレンダーと、撮影した戦利品を飾るコレクション棚、ダブりの交換マッチング。</p>
   </header>
 
   <section class="summary">
@@ -365,7 +365,7 @@
       <li><label class="item"><input type="checkbox" data-id="p0-market" checked><span class="text">市場規模・ユーザー層の調査</span><span class="note">6年で5倍、母数は十分</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p0-rival" checked><span class="text">競合調査</span><span class="note">入荷情報と在庫検索は公式が押さえている。コレクション管理と交換が空白</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p0-tech" checked><span class="text">メーカーサイトの取得可能性調査</span><span class="note">奇譚クラブ・ターリン・バンダイの3社が取得しやすい</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p0-money" checked><span class="text">課金の成立性の検証</span><span class="note">相場は月350〜480円。目標にはMAU 3,000〜12,000が必要</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p0-money" checked><span class="text">課金の成立性の検証</span><span class="note">課金は棚のプレミアムに置く。月200〜300円、目標は有料200〜400人</span></label></li>
     </ul>
 
     <div class="group-label">要 件 定 義</div>
@@ -393,6 +393,8 @@
     <ul>
       <li><label class="item"><input type="checkbox" data-id="p1-kitan" checked><span class="text">奇譚クラブのAPIからデータを取得できるか確認</span><span class="note">953件。一覧はAPI、発売月と価格と全何種は詳細ページから取る</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-tarlin" checked><span class="text">ターリンのAPIからデータを取得できるか確認</span><span class="note">616件。発売月が入っていない商品が8%ある</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-tta" checked><span class="text">タカラトミーアーツを取得できるか確認</span><span class="note">月別カレンダーで全件。週単位の発売時期が取れる。規約上の障害なし</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-qualia" checked><span class="text">Qualia を取得できるか確認</span><span class="note">詳細が構造化されており欠損ゼロ。規約上の障害なし</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-model-fix" checked><span class="text">取得できたデータを見てデータモデルを確定</span><span class="note">発売月はNULLを許容する。ラインナップ名が取れるのは奇譚クラブのみ</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-cutout-poc"><span class="text">ブラウザ内の切り抜きを検証</span><span class="note">@imgly/background-removal。実物のカプセルトイで品質を見る</span></label></li>
     </ul>
@@ -412,7 +414,7 @@
 
     <div class="group-label">収 集 バ ッ チ</div>
     <ul>
-      <li><label class="item"><input type="checkbox" data-id="p1-scraper"><span class="text">2社分の収集処理を実装</span><span class="note">奇譚クラブ・ターリン。バンダイからは取らない</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-scraper"><span class="text">4社分の収集処理を実装</span><span class="note">奇譚クラブ・ターリン・タカラトミーアーツ・Qualia。バンダイからは取らない</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-manner"><span class="text">1秒間隔・識別可能なUser-Agentの設定</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-diff"><span class="text">差分検知して変更分のみ更新</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-cron"><span class="text">日次の自動実行を設定</span></label></li>
@@ -447,7 +449,7 @@
 
     <div class="group-label">達 成 基 準</div>
     <ul>
-      <li><label class="item"><input type="checkbox" data-id="p1-g-auto"><span class="text">2社を日次で自動収集できている</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-g-auto"><span class="text">4社を日次で自動収集できている</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-g-1000"><span class="text">商品データ 1,000件以上</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-g-self"><span class="text">自分が週3回以上使っている</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-g-share"><span class="text">棚の共有画像が X に投稿されている</span></label></li>
@@ -543,7 +545,7 @@
 
     <ul>
       <li><label class="item"><input type="checkbox" data-id="c-sns"><span class="text">SNSアカウントの開設と発信</span><span class="note">最大のリスクは集客。開発と並行して進める</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="c-maker-add"><span class="text">対応メーカーを増やす</span><span class="note">タカラトミーアーツは probe で検証してから。規約上の障害はない</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="c-maker-add"><span class="text">対応メーカーを増やす</span><span class="note">ケンエレファントは EC 側の規約確認が要る。エポック・ブシロードは一覧の構造上むずかしい</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="c-monitor"><span class="text">収集失敗の監視</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="c-cost"><span class="text">無料枠の使用量を定期確認</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="c-terms-recheck"><span class="text">メーカーの規約とrobots.txtを半年ごとに再確認</span><span class="note">バンダイのように、後から禁止条項が加わることがある</span></label></li>

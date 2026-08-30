@@ -9,7 +9,8 @@
 ```bash
 uv run probe/kitan.py
 uv run probe/tarlin.py
-uv run probe/bandai.py
+uv run probe/takaratomy.py
+uv run probe/qualia.py
 ```
 
 各スクリプトは数十件を取得し、欠損と値の分布を出力する。取得件数を絞ってあるため、相手サーバーへの負荷は小さい。
@@ -19,6 +20,8 @@ uv run probe/bandai.py
 `欠損: なし` であれば構造は生きている。欠損が出た場合は、そのメーカーのHTMLかAPIが変わった可能性が高い。
 
 ターリンの発売月は常時8%前後欠損する。これはメーカー側がデータを入れていないためで、異常ではない。
+
+タカラトミーアーツは一部の商品が特設ページへリダイレクトされ、項目が欠損する。これも異常ではない。
 
 ## ターリンの証明書
 

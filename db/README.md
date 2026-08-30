@@ -34,10 +34,10 @@ pnpm --dir ../web exec wrangler d1 migrations apply capsulog --remote
 ```sql
 CREATE TABLE makers (
   id           INTEGER PRIMARY KEY,
-  code         TEXT NOT NULL UNIQUE,   -- 'kitan' | 'tarlin' | 'bandai'
+  code         TEXT NOT NULL UNIQUE,   -- 'kitan' | 'tarlin' | 'takaratomy' | 'qualia' | 'bandai'
   name         TEXT NOT NULL,
   official_url TEXT NOT NULL,
-  source_type  TEXT NOT NULL           -- 'wp_api' | 'json_api' | 'html'
+  source_type  TEXT NOT NULL           -- 'wp_api' | 'json_api' | 'html' | 'manual'
 );
 
 CREATE TABLE products (
@@ -78,7 +78,7 @@ CREATE INDEX idx_variants_product ON variants(product_id);
 ## 各カラムの根拠
 
 **日単位の発売日カラムを作らない。**
-全メーカーが月単位までしか公開していない。
+日単位まで公開するメーカーがない。最も細かいタカラトミーアーツでも週まで。
 日単位のカラムを作ると、存在しない精度を持っているかのような誤解を生む。
 
 **`release_year_month` は NULL を許容する。**
@@ -90,9 +90,9 @@ CREATE INDEX idx_variants_product ON variants(product_id);
 
 | `release_precision` | `release_detail` | 出す社 |
 |---|---|---|
-| `month` | NULL | ターリン |
+| `month` | NULL | ターリン、Qualia |
 | `period` | `early` \| `mid` \| `late` | 奇譚クラブ |
-| `week` | `1`〜`5` | タカラトミーアーツ（追加候補） |
+| `week` | 週の起点日 `MM-DD` | タカラトミーアーツ。「9月7日週発売」の表記から取る |
 
 新しい粒度が出てきても、`release_precision` に値を足すだけで済む。
 
@@ -108,7 +108,7 @@ CREATE INDEX idx_variants_product ON variants(product_id);
 バッチは `batch` の行しか触らない。
 
 **`source_id` はメーカーごとに意味が違う。**
-奇譚クラブは記事ID、ターリンは商品ID、バンダイは JAN コードが入る。
+奇譚クラブは記事ID、ターリンと Qualia は商品ID、タカラトミーアーツは品番、バンダイは JAN コードが入る。
 JAN 専用のカラムは作らない。埋まるのが1社だけになるため。
 
 **`total_variants` を正とする。**
