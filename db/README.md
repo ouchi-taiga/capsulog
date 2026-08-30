@@ -15,6 +15,17 @@ pnpm --dir ../web exec wrangler d1 migrations apply capsulog --remote
 `migrations/` に SQL ファイルを置く。適用済みのファイルは編集しない。
 変更するときは新しいマイグレーションを追加する。
 
+## ローカル DB の確認
+
+```bash
+cd web
+pnpm exec wrangler d1 migrations apply capsulog --local   # 初回
+pnpm exec wrangler d1 execute capsulog --local --command "SELECT * FROM makers"
+```
+
+実体は `web/.wrangler/state/v3/d1/miniflare-D1DatabaseObject/` の SQLite ファイル。
+sqlite3 で直接開ける。
+
 汎用の ORM は使えない。D1 は Workers のバインディング経由でしか触れず、接続文字列が存在しない。
 
 ## テーブル

@@ -7,10 +7,25 @@ Workers ではなく GitHub Actions で動かす。奇譚クラブの953件を1�
 ## 実行
 
 ```bash
-uv run batch/main.py            # 全メーカー
-uv run batch/main.py --maker kitan
-uv run batch/main.py --dry-run  # D1 に書き込まない
+uv run batch/main.py                 # 全メーカー。日次モード
+uv run batch/main.py --maker kitan   # 1社だけ
+uv run batch/main.py --full          # 全件の詳細を取り直す。初回用
+uv run batch/main.py --dry-run       # D1 に書き込まない
+uv run batch/main.py --limit 5       # 詳細取得を5件まで。検証用
 ```
+
+書き込み先は環境変数 `D1_TARGET` で選ぶ。
+
+| 値 | 先 |
+|---|---|
+| `local`（既定） | 手元の D1。`web/.wrangler/` の SQLite |
+| `remote` | 本番の D1。`CLOUDFLARE_API_TOKEN` が要る |
+
+**既定はローカル。** 手元での実行が誤って本番に書かないようにするため。
+本番に書くのは GitHub Actions で、そちらに `D1_TARGET=remote` を設定する。
+
+日次モードで詳細を取りに行くのは、新規の商品と発売が2ヶ月以内に迫った商品だけ。
+発売済みの商品は変わらないため取り直さない。
 
 ## lint
 
@@ -37,8 +52,16 @@ ruff format .
 - リクエストは**1秒以上あける**
 - User-Agent にサービス名と連絡先を入れる
 - **商品説明文と画像を保存しない。** 事実情報のみを扱う
+- 出典として公式ページの URL を必ず入れる
 - 1社が失敗しても他社は続行する
 - 触るのは `origin = 'batch'` の行だけ。運営の手入力分に触れない
+
+## コードの書き方
+
+- 標準ライブラリのみ。依存を増やさない
+- 関数には docstring を書く。PEP 257 に従い、要約は開きクォートと同じ行に置く
+- 流れが読み取りにくい処理には、何をしているかと、なぜそうしたかを書く
+- 処理を見ればわかることは書かない
 
 ## 取り込み前の検証
 
@@ -55,3 +78,22 @@ ruff format .
 ターリンの発売月は常時8%前後欠損する。欠損そのものは異常として扱わない。
 
 中止したときは理由と判定に使った数値をログに残す。通知は作らない。
+
+## ログ
+
+stdout に1行ずつ流す。保存は実行環境に任せる。GitHub Actions のジョブログに90日残る。
+
+```text
+2026-08-31 01:21:05 INFO    main.py:189 [kitan] 完了 listed=953 fetched=41 changed=3 missing_ym=0 elapsed=52s
+```
+
+- 時刻は日本時間。発売月の扱いと揃える
+- 数値は `key=value` で書く。目で読めて、grep でも拾える
+- レベルは3つ。INFO が正常の流れ、WARNING が商品単位の取りこぼし、ERROR が中止と失敗
+
+| 見るべき値 | 意味 |
+|---|---|
+| `listed` | 一覧に載っていた件数。急減は取得の壊れ |
+| `changed` | 普段は数件。全件変わったら構造変化を疑う |
+| `missing_ym` | 発売月の欠損。ターリンは常時8%前後 |
+
