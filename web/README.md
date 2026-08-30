@@ -5,10 +5,13 @@
 ## 実行
 
 ```bash
-pnpm dev
+pnpm dev      # ローカル起動。localhost:5173
 pnpm build
-pnpm exec wrangler deploy
+pnpm deploy
 ```
+
+`pnpm dev` に `--host` を付けている。
+付けないと IPv6 だけで待ち受け、Dev Container のポート転送から届かない。
 
 ## 画面
 
