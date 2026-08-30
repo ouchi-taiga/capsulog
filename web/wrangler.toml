@@ -1,0 +1,11 @@
+name = "capsulog"
+main = ".svelte-kit/cloudflare/_worker.js"
+compatibility_date = "2026-08-29"
+compatibility_flags = ["nodejs_compat"]
+
+assets = { directory = ".svelte-kit/cloudflare", binding = "ASSETS" }
+
+[[d1_databases]]
+binding = "DB"
+database_name = "capsulog"
+database_id = "5f496d82-bf27-4a0b-8482-8b5447c356d5"
