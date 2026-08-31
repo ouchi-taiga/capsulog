@@ -10,9 +10,13 @@ from makers import JST
 
 
 def _month_range() -> tuple[str, str]:
-    """発売月として妥当な範囲（過去5年〜未来2年）を 'YYYY-MM' で返す。"""
+    """発売月として妥当な範囲（過去30年〜未来2年）を 'YYYY-MM' で返す。
+
+    見たいのは年の桁を誤認したような壊れ値で、実在の古い商品は正当。
+    奇譚クラブは2010年からの全商品が取れる。
+    """
     t = datetime.datetime.now(JST).date()
-    return f"{t.year - 5}-{t.month:02d}", f"{t.year + 2}-{t.month:02d}"
+    return f"{t.year - 30}-{t.month:02d}", f"{t.year + 2}-{t.month:02d}"
 
 
 def _out_of_range(p, lo: str, hi: str) -> bool:
