@@ -22,19 +22,31 @@
 		return query ? `?${query}` : resolve('/');
 	}
 
-	let monthChips = $derived([
-		{ label: '今月・来月', href: link('month', null), on: data.filters.month === null },
-		...data.monthOptions.map((yearMonth, index) => ({
-			label: ['先月', '今月', '来月'][index] + ` (${formatYearMonth(yearMonth).slice(5)})`,
+	function monthChip(label: string, yearMonth: string) {
+		return {
+			label: `${label} (${formatYearMonth(yearMonth).slice(5)})`,
 			href: link('month', yearMonth),
 			on: data.filters.month === yearMonth
-		})),
+		};
+	}
+
+	// 時系列順に並べ、既定の「今月・来月」を先月と今月の間に挟む
+	let monthChips = $derived([
+		{
+			label: `先々月以前 (〜${formatYearMonth(data.earlierYearMonth).slice(5)})`,
+			href: link('month', 'earlier'),
+			on: data.filters.month === 'earlier'
+		},
+		monthChip('先月', data.previousYearMonth),
+		{ label: '今月・来月', href: link('month', null), on: data.filters.month === null },
+		monthChip('今月', data.thisYearMonth),
+		monthChip('来月', data.nextYearMonth),
 		{
 			label: `再来月以降 (${formatYearMonth(data.laterYearMonth).slice(5)}〜)`,
 			href: link('month', 'later'),
 			on: data.filters.month === 'later'
 		},
-		{ label: '未定', href: link('month', 'tbd'), on: data.filters.month === 'tbd' }
+		{ label: '不明', href: link('month', 'unknown'), on: data.filters.month === 'unknown' }
 	]);
 
 	let makerChips = $derived([
@@ -70,11 +82,9 @@
 		[
 			data.filters.month && {
 				label:
-					data.filters.month === 'tbd'
-						? '発売月未定'
-						: data.filters.month === 'later'
-							? '再来月以降'
-							: formatYearMonth(data.filters.month),
+					{ unknown: '発売月不明', later: '再来月以降', earlier: '先々月以前' }[
+						data.filters.month
+					] ?? formatYearMonth(data.filters.month),
 				href: link('month', null)
 			},
 			data.filters.makerCode && {
@@ -235,7 +245,7 @@
 			<p class="py-16 text-center text-sm text-faint">この条件の商品はありません</p>
 		{:else}
 			<div class="flex flex-col gap-6">
-				{#each data.groups as group (group.yearMonth ?? 'tbd')}
+				{#each data.groups as group (group.yearMonth ?? 'unknown')}
 					<MonthGroup {group} />
 				{/each}
 			</div>

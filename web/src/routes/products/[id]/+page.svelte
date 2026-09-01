@@ -18,7 +18,7 @@
 	</div>
 
 	<dl class="grid grid-cols-3 gap-2.5">
-		{#each [['発売', formatRelease(product.yearMonth, product.precision, product.detail)], ['価格', product.price === null ? '未定' : `¥${product.price}`], ['種類', product.totalVariants === null ? '—' : `全${product.totalVariants}種`]] as [label, value] (label)}
+		{#each [['発売', formatRelease(product.yearMonth, product.precision, product.detail)], ['価格', product.price === null ? '不明' : `¥${product.price}`], ['種類', product.totalVariants === null ? '—' : `全${product.totalVariants}種`]] as [label, value] (label)}
 			<div class="rounded-2xl bg-surface px-2 py-3 text-center shadow-clay">
 				<dt class="text-[10.5px] font-bold text-faint">{label}</dt>
 				<dd class="mt-0.5 text-sm font-extrabold tabular-nums">{value}</dd>

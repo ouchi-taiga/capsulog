@@ -81,22 +81,31 @@ describe('listProducts の絞り込み', () => {
 		expect(await names({ yearMonths: [], keyword: 'B_C' })).toEqual(['AB_C']);
 	});
 
-	it('発売月で絞り込み、未定だけも出せる', async () => {
+	it('発売月で絞り込み、不明だけも出せる', async () => {
 		await seed({ name: '9月', yearMonth: '2026-09' });
 		await seed({ name: '10月', yearMonth: '2026-10' });
-		await seed({ name: '未定', yearMonth: null });
+		await seed({ name: '不明', yearMonth: null });
 
 		expect(await names({ yearMonths: ['2026-09'] })).toEqual(['9月']);
-		expect(await names({ yearMonths: [], tbdOnly: true })).toEqual(['未定']);
+		expect(await names({ yearMonths: [], unknownOnly: true })).toEqual(['不明']);
 	});
 
-	it('以降の指定は境界の月を含み、未定を含まない', async () => {
+	it('以降の指定は境界の月を含み、不明を含まない', async () => {
 		await seed({ name: '10月', yearMonth: '2026-10' });
 		await seed({ name: '11月', yearMonth: '2026-11' });
 		await seed({ name: '12月', yearMonth: '2026-12' });
-		await seed({ name: '未定', yearMonth: null });
+		await seed({ name: '不明', yearMonth: null });
 
 		expect(await names({ yearMonths: [], fromYearMonth: '2026-11' })).toEqual(['11月', '12月']);
+	});
+
+	it('以前の指定は境界の月を含み、新しい月から順に返す', async () => {
+		await seed({ name: '6月', yearMonth: '2026-06' });
+		await seed({ name: '7月', yearMonth: '2026-07' });
+		await seed({ name: '8月', yearMonth: '2026-08' });
+		await seed({ name: '不明', yearMonth: null });
+
+		expect(await names({ yearMonths: [], untilYearMonth: '2026-07' })).toEqual(['7月', '6月']);
 	});
 
 	it('メーカーで絞り込める', async () => {
@@ -108,9 +117,9 @@ describe('listProducts の絞り込み', () => {
 });
 
 describe('listProducts の並び', () => {
-	it('月ごとにまとまり、未定が最後', async () => {
+	it('月ごとにまとまり、不明が最後', async () => {
 		await seed({ name: '10月', yearMonth: '2026-10' });
-		await seed({ name: '未定', yearMonth: null });
+		await seed({ name: '不明', yearMonth: null });
 		await seed({ name: '9月', yearMonth: '2026-09' });
 
 		const { groups } = await listProducts(db, { yearMonths: [] });

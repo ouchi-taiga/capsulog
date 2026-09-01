@@ -22,7 +22,7 @@
 		<span class="line-clamp-2">{item.name}</span>
 	</h3>
 	<div class="mt-auto flex gap-3.5 text-xs font-bold text-faint tabular-nums">
-		<span>{item.price === null ? '価格未定' : `¥${item.price}`}</span>
+		<span>{item.price === null ? '価格不明' : `¥${item.price}`}</span>
 		{#if item.totalVariants !== null}<span>全{item.totalVariants}種</span>{/if}
 		{#if detail}<span>{detail}</span>{/if}
 	</div>

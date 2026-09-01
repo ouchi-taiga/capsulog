@@ -10,8 +10,8 @@ describe('formatYearMonth', () => {
 		expect(formatYearMonth('2026-04')).toBe('2026年4月');
 	});
 
-	it('null は発売月未定', () => {
-		expect(formatYearMonth(null)).toBe('発売月未定');
+	it('null は発売月不明', () => {
+		expect(formatYearMonth(null)).toBe('発売月不明');
 	});
 });
 
@@ -46,8 +46,8 @@ describe('formatRelease', () => {
 		expect(formatRelease('2026-10', 'month', null)).toBe('2026年10月');
 	});
 
-	it('未定は付加情報を持たない', () => {
-		expect(formatRelease(null, null, null)).toBe('発売月未定');
+	it('不明は付加情報を持たない', () => {
+		expect(formatRelease(null, null, null)).toBe('発売月不明');
 	});
 });
 

@@ -1,8 +1,8 @@
 const PERIOD_LABELS: Record<string, string> = { early: '上旬', mid: '中旬', late: '下旬' };
 
-/** '2026-10' を「2026年10月」にする。null は「発売月未定」 */
+/** '2026-10' を「2026年10月」にする。null は「発売月不明」 */
 export function formatYearMonth(yearMonth: string | null): string {
-	if (!yearMonth) return '発売月未定';
+	if (!yearMonth) return '発売月不明';
 	const [year, month] = yearMonth.split('-');
 	return `${year}年${Number(month)}月`;
 }

@@ -9,13 +9,15 @@ import re
 
 import net
 
-from . import PRICE, TOTAL, needs_detail, product, to_ym, txt
+from . import PRICE, TOTAL, infer_year_month, needs_detail, product, to_ym, txt
 
 CODE = "kitan"
 COUNT_GATE = True  # 一覧に全件が載るため、件数の減少で壊れを検知できる
 BASE = "https://kitan.jp"
 # 奇譚クラブだけ旬（上旬・中旬・下旬）まで書くため、共通の MONTH は使わない
 MONTH = re.compile(r"(\d{4})\s*年\s*(\d{1,2})\s*月\s*(上旬|中旬|下旬)?")
+# まれに「2月上旬」のような年なし表記がある。年は infer_year_month で補う
+MONTH_WITHOUT_YEAR = re.compile(r"(\d{1,2})\s*月\s*(上旬|中旬|下旬)?")
 PERIOD = {"上旬": "early", "中旬": "mid", "下旬": "late"}
 
 
@@ -48,6 +50,12 @@ def _parse_detail(h):
     rel, pr = d.get("発売日", ""), d.get("価格", "")
     mm, mp, mt = MONTH.search(rel), PRICE.search(pr), TOTAL.search(pr)
     total = int(mt.group(1)) if mt else None
+    if mm:
+        ym, period = to_ym(mm), mm.group(3)
+    else:
+        mb = MONTH_WITHOUT_YEAR.search(rel)
+        ym = infer_year_month(int(mb.group(1))) if mb else None
+        period = mb.group(2) if mb else None
     names = [
         txt(m.group(1))
         for m in re.finditer(r'(?is)<p class="c-productDetail__pickup-text">(.*?)</p>', h)
@@ -56,9 +64,9 @@ def _parse_detail(h):
     variants = names[:total] if total else names
     return {
         "name": d.get("商品名"),
-        "ym": to_ym(mm),
-        "precision": "period" if mm and mm.group(3) else ("month" if mm else None),
-        "detail": PERIOD.get(mm.group(3)) if mm and mm.group(3) else None,
+        "ym": ym,
+        "precision": "period" if ym and period else ("month" if ym else None),
+        "detail": PERIOD.get(period) if ym and period else None,
         "raw": rel or None,
         "price": int(mp.group(1).replace(",", "")) if mp else None,
         "total": total,

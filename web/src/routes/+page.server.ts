@@ -16,14 +16,17 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 	// 月の指定がなければ今月と来月。検索時は全期間から探す
 	let yearMonths: string[] = [];
 	let fromYearMonth: string | undefined;
+	let untilYearMonth: string | undefined;
 	if (month === null && !keyword) yearMonths = [currentYearMonth(0), currentYearMonth(1)];
 	else if (month === 'later') fromYearMonth = currentYearMonth(2);
+	else if (month === 'earlier') untilYearMonth = currentYearMonth(-2);
 	else if (month && /^\d{4}-\d{2}$/.test(month)) yearMonths = [month];
 
 	const filters: ListFilters = {
 		yearMonths,
 		fromYearMonth,
-		tbdOnly: month === 'tbd',
+		untilYearMonth,
+		unknownOnly: month === 'unknown',
 		makerCode,
 		priceBand:
 			priceBand === '300' || priceBand === '400' || priceBand === '500' ? priceBand : undefined,
@@ -35,8 +38,11 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 	return {
 		makers,
 		...list,
-		monthOptions: [-1, 0, 1].map((offset) => currentYearMonth(offset)),
+		previousYearMonth: currentYearMonth(-1),
+		thisYearMonth: currentYearMonth(0),
+		nextYearMonth: currentYearMonth(1),
 		laterYearMonth: currentYearMonth(2),
+		earlierYearMonth: currentYearMonth(-2),
 		filters: { month, makerCode, priceBand, keyword, sort }
 	};
 };

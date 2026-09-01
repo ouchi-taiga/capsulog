@@ -22,6 +22,20 @@ def to_ym(m: re.Match | None) -> str | None:
     return f"{m.group(1)}-{int(m.group(2)):02d}" if m else None
 
 
+def infer_year_month(month: int) -> str:
+    """年なしの月表記に年を補って 'YYYY-MM' にする。
+
+    今日から過去3ヶ月〜未来8ヶ月に収まる年を選ぶ。
+    窓を12ヶ月にしてあるため、どの月でも候補はちょうど1つに決まる。
+    """
+    today = datetime.datetime.now(JST)
+    for year in (today.year - 1, today.year, today.year + 1):
+        months_ahead = (year - today.year) * 12 + month - today.month
+        if -3 <= months_ahead <= 8:
+            return f"{year}-{month:02d}"
+    raise ValueError(f"month out of range: {month}")
+
+
 def txt(x: str) -> str:
     """HTML からタグを落とし、実体参照を戻し、空白を1つにまとめる。"""
     return " ".join(html.unescape(re.sub(r"(?is)<[^>]+>", "", x)).split())

@@ -5,8 +5,10 @@ export type ListFilters = {
 	yearMonths: string[];
 	/** この月以降を出す。「再来月以降」用。yearMonths より優先 */
 	fromYearMonth?: string;
-	/** true なら発売月未定だけを出す */
-	tbdOnly?: boolean;
+	/** この月以前を出す。「先々月以前」用。新しい月から順に返す */
+	untilYearMonth?: string;
+	/** true なら発売月不明だけを出す */
+	unknownOnly?: boolean;
 	makerCode?: string;
 	priceBand?: '300' | '400' | '500';
 	keyword?: string;
@@ -55,11 +57,14 @@ export async function listProducts(
 	const where: string[] = [];
 	const binds: (string | number)[] = [];
 
-	if (filters.tbdOnly) {
+	if (filters.unknownOnly) {
 		where.push('p.release_year_month IS NULL');
 	} else if (filters.fromYearMonth) {
 		where.push('p.release_year_month >= ?');
 		binds.push(filters.fromYearMonth);
+	} else if (filters.untilYearMonth) {
+		where.push('p.release_year_month <= ?');
+		binds.push(filters.untilYearMonth);
 	} else if (filters.yearMonths.length > 0) {
 		where.push(`p.release_year_month IN (${filters.yearMonths.map(() => '?').join(', ')})`);
 		binds.push(...filters.yearMonths);
@@ -78,9 +83,11 @@ export async function listProducts(
 
 	const order =
 		filters.sort === 'price' ? 'p.price IS NULL, p.price, p.name' : `${RELEASE_ORDER}, p.name`;
+	// 過去をさかのぼる表示だけ新しい月が先。昇順だと最古の年から始まってしまう
+	const monthOrder = filters.untilYearMonth ? 'DESC' : 'ASC';
 	const sql = `${SELECT_ITEM}
 		${where.length ? 'WHERE ' + where.join(' AND ') : ''}
-		ORDER BY p.release_year_month IS NULL, p.release_year_month, ${order}
+		ORDER BY p.release_year_month IS NULL, p.release_year_month ${monthOrder}, ${order}
 		LIMIT ${PAGE_LIMIT + 1}`;
 
 	const { results } = await db
