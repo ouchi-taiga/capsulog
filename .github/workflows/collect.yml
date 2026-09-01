@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - name: 収集
-        run: uv run batch/main.py ${{ inputs.full == true && '--full' || '' }}
+        run: uv run --no-dev batch/main.py ${{ inputs.full == true && '--full' || '' }}
         env:
           D1_TARGET: remote
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

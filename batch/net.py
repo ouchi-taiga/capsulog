@@ -2,6 +2,7 @@
 
 import ssl
 import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -26,8 +27,16 @@ def get(url: str, timeout: int = 30) -> bytes:
     if wait > 0:
         time.sleep(wait)
     req = urllib.request.Request(url, headers={"User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=timeout, context=_CTX) as f:
-        body = f.read()
+    try:
+        with urllib.request.urlopen(req, timeout=timeout, context=_CTX) as f:
+            body = f.read()
+    except urllib.error.HTTPError as e:
+        # ステータスだけでは原因を追えない。本文の先頭を理由に含めて投げ直す。
+        # 型とコードを保つのは、呼び出し側がページ終端の判定に使うため
+        detail = " ".join(e.read().decode("utf-8", "replace").split())[:200]
+        raise urllib.error.HTTPError(
+            e.url, e.code, f"{e.reason} body={detail}", e.headers, None
+        ) from None
     _last = time.monotonic()
     return body
 
