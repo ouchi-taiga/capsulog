@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { formatRelease } from '$lib/calendar/format';
+	import { formatRelease, releaseStatus } from '$lib/calendar/format';
 	import CapsuleRow from '$lib/calendar/components/CapsuleRow.svelte';
 	import MakerTag from '$lib/calendar/components/MakerTag.svelte';
 	import ProductCard from '$lib/calendar/components/ProductCard.svelte';
 
 	let { data } = $props();
 	let product = $derived(data.product);
+	let status = $derived(releaseStatus(product.yearMonth, product.precision, product.detail));
 </script>
 
 <svelte:head>
@@ -15,7 +16,19 @@
 
 <main class="mx-auto flex max-w-2xl flex-col gap-5 px-4 pt-3 pb-28">
 	<div>
-		<MakerTag code={product.makerCode} name={product.makerName} />
+		<div class="flex items-center gap-2">
+			<MakerTag code={product.makerCode} name={product.makerName} />
+			{#if status}
+				<span
+					class={[
+						'inline-block rounded-full px-2.5 py-0.5 text-[11px] font-extrabold',
+						status === '発売済み' ? 'bg-ground text-faint shadow-clay-sm' : 'bg-sub text-white'
+					]}
+				>
+					{status}
+				</span>
+			{/if}
+		</div>
 		<h1 class="mt-2.5 text-xl leading-relaxed font-extrabold text-balance">{product.name}</h1>
 	</div>
 

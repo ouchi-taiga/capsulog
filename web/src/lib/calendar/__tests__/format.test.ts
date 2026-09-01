@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { currentYearMonth, formatDetail, formatRelease, formatYearMonth } from '../format';
+import {
+	currentYearMonth,
+	formatDetail,
+	formatRelease,
+	formatYearMonth,
+	releaseStatus
+} from '../format';
 
 describe('formatYearMonth', () => {
 	it('年月を日本語表記にする', () => {
@@ -48,6 +54,44 @@ describe('formatRelease', () => {
 
 	it('不明は付加情報を持たない', () => {
 		expect(formatRelease(null, null, null)).toBe('発売月不明');
+	});
+});
+
+describe('releaseStatus', () => {
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
+	// 日本時間 2026-09-15 に固定する
+	function freezeToday() {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date('2026-09-15T03:00:00Z'));
+	}
+
+	it('過去の月は発売済み', () => {
+		freezeToday();
+		expect(releaseStatus('2026-08', 'month', null)).toBe('発売済み');
+	});
+
+	it('未来はヶ月数で数え、1ヶ月だけ来月発売と言う', () => {
+		freezeToday();
+		expect(releaseStatus('2026-10', 'month', null)).toBe('来月発売');
+		expect(releaseStatus('2026-12', 'month', null)).toBe('発売まであと約3ヶ月');
+		expect(releaseStatus('2027-02', 'period', 'early')).toBe('発売まであと約5ヶ月');
+	});
+
+	it('今月は旬・週の終わりを過ぎていたら発売済み', () => {
+		freezeToday();
+		expect(releaseStatus('2026-09', 'period', 'early')).toBe('発売済み');
+		expect(releaseStatus('2026-09', 'period', 'late')).toBe('今月発売');
+		expect(releaseStatus('2026-09', 'week', '09-01')).toBe('発売済み');
+		expect(releaseStatus('2026-09', 'week', '09-14')).toBe('今月発売');
+		expect(releaseStatus('2026-09', 'month', null)).toBe('今月発売');
+	});
+
+	it('発売月不明は null', () => {
+		freezeToday();
+		expect(releaseStatus(null, null, null)).toBeNull();
 	});
 });
 
