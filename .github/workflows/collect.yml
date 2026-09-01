@@ -1,0 +1,31 @@
+# メーカーからの日次収集。毎朝5時(JST)に本番の D1 へ取り込む。
+# 実行には リポジトリの secret CLOUDFLARE_API_TOKEN が要る。
+name: collect
+
+on:
+  schedule:
+    - cron: "0 20 * * *" # 05:00 JST
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "全件の詳細を取り直す"
+        type: boolean
+        default: false
+
+# 前の実行が残っていたら重ねない。収集は冪等だが、無駄な負荷をかけない
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: 収集
+        run: uv run batch/main.py ${{ inputs.full == true && '--full' || '' }}
+        env:
+          D1_TARGET: remote
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

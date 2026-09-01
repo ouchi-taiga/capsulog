@@ -27,6 +27,14 @@ uv run batch/main.py --limit 5       # 詳細取得を5件まで。検証用
 日次モードで詳細を取りに行くのは、新規の商品と発売が2ヶ月以内に迫った商品だけ。
 発売済みの商品は変わらないため取り直さない。
 
+## 日次実行
+
+`.github/workflows/collect.yml` が毎朝5時（JST）に本番へ取り込む。
+リポジトリの secret に `CLOUDFLARE_API_TOKEN` を登録しておく。
+
+手動で回すときは GitHub の Actions タブから workflow_dispatch で実行する。
+`full` を有効にすると全件を取り直す。
+
 ## lint
 
 ```bash
