@@ -12,7 +12,7 @@
 		<span class="text-xs text-faint">{group.items.length}件</span>
 		<span class="deco-wave ml-1.5 h-2 flex-1" aria-hidden="true"></span>
 	</h2>
-	<ul class="flex flex-col gap-4 sm:grid sm:grid-cols-2">
+	<ul class="flex flex-col gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3">
 		{#each group.items as item (item.id)}
 			<li><ProductCard {item} /></li>
 		{/each}

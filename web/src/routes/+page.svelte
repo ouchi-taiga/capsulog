@@ -4,6 +4,7 @@
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { formatYearMonth } from '$lib/calendar/format';
 	import MonthGroup from '$lib/calendar/components/MonthGroup.svelte';
+	import AppHeader from '$lib/common/AppHeader.svelte';
 
 	let { data } = $props();
 
@@ -58,33 +59,30 @@
 	/>
 </svelte:head>
 
-<header class="deco-dots sticky top-0 z-10 bg-ground/95 px-4 pt-5 pb-3 backdrop-blur-sm">
-	<div class="mx-auto flex max-w-2xl items-center justify-between">
-		<h1 class="text-xl font-extrabold">カプセ<span class="text-accent">ログ</span></h1>
-		<form method="GET" action="/" class="flex items-center">
-			{#if data.filters.month}<input type="hidden" name="month" value={data.filters.month} />{/if}
-			{#if data.filters.makerCode}<input
-					type="hidden"
-					name="maker"
-					value={data.filters.makerCode}
-				/>{/if}
-			{#if data.filters.priceBand}<input
-					type="hidden"
-					name="price"
-					value={data.filters.priceBand}
-				/>{/if}
-			<input
-				type="search"
-				name="q"
-				value={data.filters.keyword ?? ''}
-				placeholder="商品名で検索"
-				class="w-40 rounded-full bg-surface px-4 py-1.5 text-sm shadow-clay-sm outline-none placeholder:text-faint focus:ring-2 focus:ring-accent"
-			/>
-		</form>
-	</div>
-</header>
+<AppHeader sticky>
+	<form method="GET" action="/" class="flex items-center">
+		{#if data.filters.month}<input type="hidden" name="month" value={data.filters.month} />{/if}
+		{#if data.filters.makerCode}<input
+				type="hidden"
+				name="maker"
+				value={data.filters.makerCode}
+			/>{/if}
+		{#if data.filters.priceBand}<input
+				type="hidden"
+				name="price"
+				value={data.filters.priceBand}
+			/>{/if}
+		<input
+			type="search"
+			name="q"
+			value={data.filters.keyword ?? ''}
+			placeholder="商品名で検索"
+			class="w-40 rounded-full bg-surface px-4 py-1.5 text-sm shadow-clay-sm outline-none placeholder:text-faint focus:ring-2 focus:ring-accent"
+		/>
+	</form>
+</AppHeader>
 
-<main class="mx-auto max-w-2xl px-4 pb-16">
+<main class="mx-auto max-w-2xl px-4 pb-16 lg:max-w-5xl">
 	<nav class="flex flex-col gap-2.5 pt-3 pb-5" aria-label="絞り込み">
 		{#each [monthChips, makerChips, priceChips] as chips, index (index)}
 			<div class="-mx-4 flex scrollbar-none gap-2 overflow-x-auto px-4">
