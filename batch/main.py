@@ -22,6 +22,8 @@ from validate import check
 logger = logging.getLogger("batch")
 
 MAKERS = {m.CODE: m for m in (kitan, tarlin, takaratomy, qualia)}
+# D1 の REST API は1文あたりのバインドパラメータが100個まで
+PARAM_LIMIT = 100
 CHUNK = 25
 
 # products の列。この並びで upsert のパラメータを組む
@@ -106,7 +108,7 @@ def upsert_products(db, maker_id, items, now):
     UNIQUE (maker_id, source_id) に当たったら更新する。何度実行しても結果は同じ。
     created_at は更新しないため、初回の値が残る。
     """
-    for chunk in chunks(items):
+    for chunk in chunks(items, PARAM_LIMIT // len(COLS)):
         row = "(" + ",".join(["?"] * len(COLS)) + ")"
         params = []
         for p in chunk:
@@ -152,18 +154,17 @@ def replace_variants(db, maker_id, items):
         if not ids:
             continue
         db.query(f"DELETE FROM variants WHERE product_id IN ({','.join(['?'] * len(ids))})", ids)
-        params, values = [], []
-        for p in chunk:
-            if p["source_id"] not in pid:
-                continue
-            for i, name in enumerate(p["variants"]):
-                values.append("(?,?,?,?)")
-                params += [pid[p["source_id"]], name, i, 1 if "シークレット" in name else 0]
-        if values:
+        rows = [
+            (pid[p["source_id"]], name, i, 1 if "シークレット" in name else 0)
+            for p in chunk
+            if p["source_id"] in pid
+            for i, name in enumerate(p["variants"])
+        ]
+        for sub in chunks(rows, PARAM_LIMIT // 4):
             db.query(
                 "INSERT INTO variants (product_id, name, display_order, is_secret) VALUES "
-                + ",".join(values),
-                params,
+                + ",".join(["(?,?,?,?)"] * len(sub)),
+                [v for r in sub for v in r],
             )
 
 

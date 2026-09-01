@@ -12,6 +12,7 @@ import glob
 import json
 import os
 import sqlite3
+import urllib.error
 import urllib.request
 
 ACCOUNT_ID = "394b46f6291810407ce73d6465f59cd3"
@@ -53,8 +54,13 @@ class RemoteD1:
         """SQL を実行し、結果行を dict のリストで返す。失敗は例外にする。"""
         body = json.dumps({"sql": sql, "params": params or []}).encode()
         req = urllib.request.Request(self._url, data=body, headers=self._headers)
-        with urllib.request.urlopen(req, timeout=60) as f:
-            res = json.loads(f.read())
+        try:
+            with urllib.request.urlopen(req, timeout=60) as f:
+                res = json.loads(f.read())
+        except urllib.error.HTTPError as e:
+            # ステータスだけでは原因がわからない。API が返す本文を添える
+            detail = e.read().decode("utf-8", "replace")[:500]
+            raise RuntimeError(f"D1 HTTP {e.code}: {detail}") from e
         if not res.get("success"):
             raise RuntimeError(f"D1 error: {res.get('errors')}")
         return res["result"][0].get("results", [])
