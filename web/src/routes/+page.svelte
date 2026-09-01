@@ -133,7 +133,7 @@
 				name="q"
 				value={data.filters.keyword ?? ''}
 				placeholder="商品名で検索"
-				class="w-full rounded-full bg-surface px-5 py-2.5 text-sm shadow-clay-sm outline-none placeholder:text-faint focus:ring-2 focus:ring-accent"
+				class="w-full rounded-full bg-surface px-5 py-2.5 text-body shadow-clay-sm outline-none placeholder:text-faint focus:ring-2 focus:ring-accent"
 			/>
 		</form>
 		<button
@@ -184,7 +184,7 @@
 				class="absolute inset-x-0 bottom-0 mx-auto flex max-h-[75dvh] max-w-2xl flex-col gap-4 overflow-y-auto rounded-t-3xl bg-surface p-5 pb-8"
 			>
 				<div class="flex items-center justify-between">
-					<p class="text-sm font-extrabold">絞り込み</p>
+					<p class="text-body font-extrabold">絞り込み</p>
 					<button
 						type="button"
 						aria-label="閉じる"
@@ -196,13 +196,13 @@
 				</div>
 				{#each [['発売月', monthChips], ['メーカー', makerChips], ['価格', priceChips], ['並び順', sortChips]] as const as [label, chips] (label)}
 					<div>
-						<p class="pb-2 text-xs font-bold text-faint">{label}</p>
+						<p class="pb-2 text-note font-bold text-faint">{label}</p>
 						<div class="flex flex-wrap gap-2">
 							{#each chips as chip (chip.label)}
 								<a
 									href={chip.href}
 									class={[
-										'rounded-full px-3.5 py-1.5 text-xs font-bold whitespace-nowrap',
+										'rounded-full px-3.5 py-1.5 text-note font-bold whitespace-nowrap',
 										chip.on
 											? 'bg-accent text-on-accent shadow-clay-pressed'
 											: 'bg-ground text-faint shadow-clay-sm'
@@ -223,7 +223,7 @@
 			{#each applied as chip (chip.label)}
 				<a
 					href={chip.href}
-					class="rounded-full bg-accent px-3.5 py-1.5 text-xs font-bold text-on-accent shadow-clay-pressed"
+					class="rounded-full bg-accent px-3.5 py-1.5 text-note font-bold text-on-accent shadow-clay-pressed"
 				>
 					{chip.label} ✕
 				</a>
@@ -232,7 +232,7 @@
 	{/if}
 
 	{#if data.filters.keyword}
-		<p class="pt-3 text-sm text-faint">
+		<p class="pt-3 text-body text-faint">
 			「{data.filters.keyword}」の検索結果 {data.total}件{data.hasMore ? '以上' : ''}
 			<!-- link() は resolve() 起点でクエリを組むが、静的解析では追えない -->
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
@@ -242,7 +242,7 @@
 
 	<div class="pt-5">
 		{#if data.groups.length === 0}
-			<p class="py-16 text-center text-sm text-faint">この条件の商品はありません</p>
+			<p class="py-16 text-center text-body text-faint">この条件の商品はありません</p>
 		{:else}
 			<div class="flex flex-col gap-6">
 				{#each data.groups as group (group.yearMonth ?? 'unknown')}
@@ -250,7 +250,7 @@
 				{/each}
 			</div>
 			{#if data.hasMore}
-				<p class="pt-6 text-center text-xs text-faint">
+				<p class="pt-6 text-center text-note text-faint">
 					表示は{data.total}件まで。絞り込みか検索で狭められます
 				</p>
 			{/if}

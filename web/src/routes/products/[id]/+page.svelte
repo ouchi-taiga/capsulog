@@ -25,7 +25,7 @@
 			{#if status}
 				<span
 					class={[
-						'inline-block rounded-full px-2.5 py-0.5 text-[11px] font-extrabold',
+						'inline-block rounded-full px-2.5 py-0.5 text-note font-extrabold',
 						status === '発売済み' ? 'bg-ground text-faint shadow-clay-sm' : 'bg-sub text-white'
 					]}
 				>
@@ -33,7 +33,7 @@
 				</span>
 			{/if}
 		</div>
-		<h1 class="mt-2.5 text-xl leading-relaxed font-extrabold text-balance">{product.name}</h1>
+		<h1 class="mt-2.5 text-title leading-relaxed font-extrabold text-balance">{product.name}</h1>
 	</div>
 
 	{#if product.totalVariants !== null}
@@ -48,7 +48,7 @@
 		{#each [product.yearMonth ? `${release}発売` : release, product.price === null ? '価格不明' : `¥${product.price}`, product.totalVariants === null ? '種類数不明' : `全${product.totalVariants}種`] as value (value)}
 			<!-- 2行分を確保して上下中央に置く。折り返しで箱の高さを変えない -->
 			<li
-				class="min-h-[2lh] content-center rounded-2xl bg-surface px-2 py-4 text-center text-sm font-extrabold tabular-nums shadow-clay"
+				class="min-h-[2lh] content-center rounded-2xl bg-surface px-2 py-4 text-center text-body font-extrabold tabular-nums shadow-clay"
 			>
 				{value}
 			</li>
@@ -62,7 +62,7 @@
 				{#each product.variants as variant, index (variant.name)}
 					<li
 						class={[
-							'flex items-center gap-2.5 text-[13.5px] font-bold',
+							'flex items-center gap-2.5 text-body font-bold',
 							variant.isSecret ? 'text-accent' : ''
 						]}
 					>
@@ -82,11 +82,11 @@
 		href={product.officialUrl}
 		target="_blank"
 		rel="noopener noreferrer"
-		class="rounded-full bg-accent py-3 text-center text-sm font-bold text-on-accent shadow-clay-pressed"
+		class="rounded-full bg-accent py-3 text-center text-body font-bold text-on-accent shadow-clay-pressed"
 	>
 		公式サイトで見る ↗
 	</a>
-	<p class="text-center text-[11px] text-faint">情報の出典はメーカー公式サイト</p>
+	<p class="text-center text-note text-faint">情報の出典はメーカー公式サイト</p>
 
 	{#if data.series.length > 0}
 		<section class="pt-2">
@@ -102,7 +102,7 @@
 
 <a
 	href={resolve('/')}
-	class="fixed bottom-5 left-4 z-10 rounded-full bg-surface px-5 py-3 text-sm font-extrabold shadow-clay"
+	class="fixed bottom-5 left-4 z-10 rounded-full bg-surface px-5 py-3 text-body font-extrabold shadow-clay"
 >
 	← カレンダー
 </a>

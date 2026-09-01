@@ -12,7 +12,7 @@
 
 <span
 	class={[
-		'inline-block rounded-full px-2.5 py-0.5 text-[11px] font-extrabold text-white',
+		'inline-block rounded-full px-2.5 py-0.5 text-note font-extrabold text-white',
 		COLORS[code] ?? 'bg-faint'
 	]}
 >

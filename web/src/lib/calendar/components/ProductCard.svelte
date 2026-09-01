@@ -17,11 +17,11 @@
 	<div><MakerTag code={item.makerCode} name={item.makerName} /></div>
 	<!-- 常に2行分を確保してカードの高さを揃える。1列のときだけ上下中央に置く -->
 	<h3
-		class="mt-2 mb-1.5 min-h-[2lh] content-center text-[15px] leading-relaxed font-bold sm:content-start"
+		class="mt-2 mb-1.5 min-h-[2lh] content-center text-body leading-relaxed font-bold sm:content-start"
 	>
 		<span class="line-clamp-2">{item.name}</span>
 	</h3>
-	<div class="mt-auto flex gap-3.5 text-xs font-bold text-faint tabular-nums">
+	<div class="mt-auto flex gap-3.5 text-note font-bold text-faint tabular-nums">
 		<span>{item.price === null ? '価格不明' : `¥${item.price}`}</span>
 		{#if item.totalVariants !== null}<span>全{item.totalVariants}種</span>{/if}
 		{#if detail}<span>{detail}</span>{/if}
