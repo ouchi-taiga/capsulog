@@ -2,7 +2,6 @@
 	import { resolve } from '$app/paths';
 	import { formatRelease } from '$lib/calendar/format';
 	import MakerTag from '$lib/calendar/components/MakerTag.svelte';
-	import AppHeader from '$lib/common/AppHeader.svelte';
 
 	let { data } = $props();
 	let product = $derived(data.product);
@@ -12,9 +11,7 @@
 	<title>{product.name} | カプセログ</title>
 </svelte:head>
 
-<AppHeader backHref={resolve('/')} backLabel="カレンダー" />
-
-<main class="mx-auto flex max-w-2xl flex-col gap-5 px-4 pt-2 pb-16">
+<main class="mx-auto flex max-w-2xl flex-col gap-5 px-4 pt-3 pb-28">
 	<div>
 		<MakerTag code={product.makerCode} name={product.makerName} />
 		<h1 class="mt-2.5 text-xl leading-relaxed font-extrabold text-balance">{product.name}</h1>
@@ -67,3 +64,10 @@
 	</a>
 	<p class="text-center text-[11px] text-faint">情報の出典はメーカー公式サイト</p>
 </main>
+
+<a
+	href={resolve('/')}
+	class="fixed bottom-5 left-4 z-10 rounded-full bg-surface px-5 py-3 text-sm font-extrabold shadow-clay"
+>
+	← カレンダー
+</a>

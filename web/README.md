@@ -120,7 +120,8 @@ src/
       components/             この機能のコンポーネント
       types.ts                この機能の型
       queries.server.ts       D1 への SQL。サーバ専用
-    common/                   機能をまたぐ部品。ヘッダーなど
+    common/                   機能をまたぐもの
+      components/             ヘッダーなど。ロジックは components の外に置く
 ```
 
 `.server.ts` で終わるモジュールはサーバ専用になる。
