@@ -1,8 +1,11 @@
-"""奇譚クラブ。WP REST API で一覧、詳細ページをパースする。"""
+"""奇譚クラブ。サイトマップで一覧、詳細ページをパースする。
 
-import json
+REST API は使わない。ホスティング（XSERVER）が海外 IP からの
+/wp-json へのアクセスを遮断しており、GitHub Actions から届かないため。
+サイトマップと HTML は世界に配信されている。
+"""
+
 import re
-import urllib.error
 
 import net
 
@@ -16,30 +19,15 @@ MONTH = re.compile(r"(\d{4})\s*年\s*(\d{1,2})\s*月\s*(上旬|中旬|下旬)?")
 PERIOD = {"上旬": "early", "中旬": "mid", "下旬": "late"}
 
 
+# スラッグには日本語をパーセントエンコードしたものが混ざる。/ 以外は何でも許す
+SITEMAP_LOC = re.compile(r"kitan\.jp/products/([^/<\]\s]+)/")
+
+
 def _list_all(limit):
-    """WP REST API で全商品の ID と詳細 URL を集める。100件ずつページングする。"""
-    items, page = [], 1
-    while True:
-        try:
-            body = net.get_text(
-                f"{BASE}/wp-json/wp/v2/products?per_page=100&page={page}&_fields=id,link"
-            )
-        except urllib.error.HTTPError as e:
-            # 総件数が100の倍数だと最終ページが満杯になり、次のページで初めて終端がわかる。
-            # WP は範囲外ページに 400 を返すため、2ページ目以降の 400 は終端として扱う
-            if e.code == 400 and page > 1:
-                break
-            raise
-        chunk = json.loads(body)
-        if not chunk:
-            break
-        items.extend(chunk)
-        if limit and len(items) >= limit:
-            return items[:limit]
-        if len(chunk) < 100:
-            break
-        page += 1
-    return items
+    """サイトマップから全商品のスラッグを集める。スラッグが source_id になる。"""
+    xml = net.get_text(f"{BASE}/products-sitemap.xml")
+    slugs = list(dict.fromkeys(SITEMAP_LOC.findall(xml)))
+    return slugs[:limit] if limit else slugs
 
 
 def _parse_detail(h):
@@ -84,16 +72,16 @@ def fetch(existing, full, limit, log):
     Returns:
         (正規化した商品のリスト, 一覧に載っていた件数)
     """
-    items = _list_all(limit)
-    log.info(f"一覧 listed={len(items)}")
+    slugs = _list_all(limit)
+    log.info(f"一覧 listed={len(slugs)}")
     out = []
-    for it in items:
-        sid = str(it["id"])
+    for sid in slugs:
         if not needs_detail(sid, existing, full):
             continue
-        p = _parse_detail(net.get_text(it["link"]))
+        url = f"{BASE}/products/{sid}/"
+        p = _parse_detail(net.get_text(url))
         if not p["name"]:
-            log.warning(f"商品名が取れない url={it['link']}")
+            log.warning(f"商品名が取れない url={url}")
             continue
-        out.append(product(sid, p.pop("name"), it["link"], **p))
-    return out, len(items)
+        out.append(product(sid, p.pop("name"), url, **p))
+    return out, len(slugs)

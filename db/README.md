@@ -119,7 +119,7 @@ CREATE INDEX idx_variants_product ON variants(product_id);
 バッチは `batch` の行しか触らない。
 
 **`source_id` はメーカーごとに意味が違う。**
-奇譚クラブは記事ID、ターリンと Qualia は商品ID、タカラトミーアーツは品番、バンダイは JAN コードが入る。
+奇譚クラブは URL スラッグ、ターリンと Qualia は商品ID、タカラトミーアーツは品番、バンダイは JAN コードが入る。
 JAN 専用のカラムは作らない。埋まるのが1社だけになるため。
 
 **`total_variants` を正とする。**
