@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { formatRelease } from '$lib/calendar/format';
+	import CapsuleRow from '$lib/calendar/components/CapsuleRow.svelte';
 	import MakerTag from '$lib/calendar/components/MakerTag.svelte';
 
 	let { data } = $props();
@@ -16,6 +17,14 @@
 		<MakerTag code={product.makerCode} name={product.makerName} />
 		<h1 class="mt-2.5 text-xl leading-relaxed font-extrabold text-balance">{product.name}</h1>
 	</div>
+
+	{#if product.totalVariants !== null}
+		<CapsuleRow
+			count={product.totalVariants}
+			hasSecret={product.variants.some((variant) => variant.isSecret === 1)}
+			seed={product.id}
+		/>
+	{/if}
 
 	<dl class="grid grid-cols-3 gap-2.5">
 		{#each [['発売', formatRelease(product.yearMonth, product.precision, product.detail)], ['価格', product.price === null ? '不明' : `¥${product.price}`], ['種類', product.totalVariants === null ? '—' : `全${product.totalVariants}種`]] as [label, value] (label)}
