@@ -90,6 +90,15 @@ describe('listProducts の絞り込み', () => {
 		expect(await names({ yearMonths: [], tbdOnly: true })).toEqual(['未定']);
 	});
 
+	it('以降の指定は境界の月を含み、未定を含まない', async () => {
+		await seed({ name: '10月', yearMonth: '2026-10' });
+		await seed({ name: '11月', yearMonth: '2026-11' });
+		await seed({ name: '12月', yearMonth: '2026-12' });
+		await seed({ name: '未定', yearMonth: null });
+
+		expect(await names({ yearMonths: [], fromYearMonth: '2026-11' })).toEqual(['11月', '12月']);
+	});
+
 	it('メーカーで絞り込める', async () => {
 		await seed({ name: '奇譚', makerCode: 'kitan' });
 		await seed({ name: 'ターリン', makerCode: 'tarlin' });

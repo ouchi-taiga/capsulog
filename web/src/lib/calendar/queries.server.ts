@@ -3,6 +3,8 @@ import type { Maker, MonthGroup, ProductDetail, ProductListItem, Variant } from 
 export type ListFilters = {
 	/** 絞り込む発売月。空配列は全期間 */
 	yearMonths: string[];
+	/** この月以降を出す。「再来月以降」用。yearMonths より優先 */
+	fromYearMonth?: string;
 	/** true なら発売月未定だけを出す */
 	tbdOnly?: boolean;
 	makerCode?: string;
@@ -55,6 +57,9 @@ export async function listProducts(
 
 	if (filters.tbdOnly) {
 		where.push('p.release_year_month IS NULL');
+	} else if (filters.fromYearMonth) {
+		where.push('p.release_year_month >= ?');
+		binds.push(filters.fromYearMonth);
 	} else if (filters.yearMonths.length > 0) {
 		where.push(`p.release_year_month IN (${filters.yearMonths.map(() => '?').join(', ')})`);
 		binds.push(...filters.yearMonths);
