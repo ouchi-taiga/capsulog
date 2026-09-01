@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { formatRelease, releaseStatus } from '$lib/calendar/format';
+	import CapsuleBullet from '$lib/calendar/components/CapsuleBullet.svelte';
 	import CapsuleRow from '$lib/calendar/components/CapsuleRow.svelte';
+	import { capsuleColorAt } from '$lib/calendar/capsule';
 	import MakerTag from '$lib/calendar/components/MakerTag.svelte';
 	import ProductCard from '$lib/calendar/components/ProductCard.svelte';
+	import SectionHeading from '$lib/common/components/SectionHeading.svelte';
 
 	let { data } = $props();
 	let product = $derived(data.product);
@@ -53,26 +56,21 @@
 	</ul>
 
 	{#if product.variants.length > 0}
-		<section class="rounded-3xl bg-surface p-4 shadow-clay">
-			<h2 class="flex items-baseline gap-2 pb-2.5 text-xs font-bold text-faint">
-				ラインナップ
-				<span class="deco-wave h-2 flex-1" aria-hidden="true"></span>
-			</h2>
-			<ul class="flex flex-col gap-2">
-				{#each product.variants as variant (variant.name)}
+		<section>
+			<SectionHeading title="ラインナップ" />
+			<ul class="flex flex-col gap-2 rounded-3xl bg-surface p-4 shadow-clay">
+				{#each product.variants as variant, index (variant.name)}
 					<li
 						class={[
 							'flex items-center gap-2.5 text-[13.5px] font-bold',
 							variant.isSecret ? 'text-accent' : ''
 						]}
 					>
-						<span
-							class={[
-								'h-2 w-2 flex-none rounded-full opacity-70',
-								variant.isSecret ? 'bg-accent' : 'bg-sub'
-							]}
-							aria-hidden="true"
-						></span>
+						<!-- 上のカプセル並びと同じ式で色を決め、n個目と n行目を揃える -->
+						<CapsuleBullet
+							color={capsuleColorAt(product.id, index)}
+							secret={variant.isSecret === 1}
+						/>
 						{variant.name}
 					</li>
 				{/each}
@@ -92,10 +90,7 @@
 
 	{#if data.series.length > 0}
 		<section class="pt-2">
-			<h2 class="flex items-baseline gap-2.5 px-1 pb-2.5">
-				<span class="text-sm font-extrabold">シリーズの商品</span>
-				<span class="deco-wave ml-1.5 h-2 flex-1" aria-hidden="true"></span>
-			</h2>
+			<SectionHeading title="シリーズの商品" />
 			<ul class="flex flex-col gap-4 sm:grid sm:grid-cols-2">
 				{#each data.series as item (item.id)}
 					<li><ProductCard {item} /></li>

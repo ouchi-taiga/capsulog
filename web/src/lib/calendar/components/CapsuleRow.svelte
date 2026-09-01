@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { capsuleColorAt } from '../capsule';
+
 	let {
 		count,
 		hasSecret = false,
@@ -12,10 +14,8 @@
 		seed: number;
 	} = $props();
 
-	const COLORS = ['#f2766b', '#64bfae', '#8a92e3', '#e8a94f', '#e884b8', '#7cc0e8'];
-
 	function colorAt(index: number): string {
-		return COLORS[(seed + index) % COLORS.length] ?? '#f2766b';
+		return capsuleColorAt(seed, index);
 	}
 
 	function tiltAt(index: number): number {
