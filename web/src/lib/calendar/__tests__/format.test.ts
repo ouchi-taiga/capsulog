@@ -52,6 +52,10 @@ describe('formatRelease', () => {
 		expect(formatRelease('2026-10', 'month', null)).toBe('2026年10月');
 	});
 
+	it('週は区切りを入れて日付と読み違えないようにする', () => {
+		expect(formatRelease('2026-06', 'week', '06-15')).toBe('2026年6月 6/15週');
+	});
+
 	it('不明は付加情報を持たない', () => {
 		expect(formatRelease(null, null, null)).toBe('発売月不明');
 	});

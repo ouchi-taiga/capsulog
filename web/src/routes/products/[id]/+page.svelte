@@ -8,6 +8,7 @@
 	let { data } = $props();
 	let product = $derived(data.product);
 	let status = $derived(releaseStatus(product.yearMonth, product.precision, product.detail));
+	let release = $derived(formatRelease(product.yearMonth, product.precision, product.detail));
 </script>
 
 <svelte:head>
@@ -40,14 +41,16 @@
 		/>
 	{/if}
 
-	<dl class="grid grid-cols-3 gap-2.5">
-		{#each [['発売', formatRelease(product.yearMonth, product.precision, product.detail)], ['価格', product.price === null ? '不明' : `¥${product.price}`], ['種類', product.totalVariants === null ? '—' : `全${product.totalVariants}種`]] as [label, value] (label)}
-			<div class="rounded-2xl bg-surface px-2 py-3 text-center shadow-clay">
-				<dt class="text-[10.5px] font-bold text-faint">{label}</dt>
-				<dd class="mt-0.5 text-sm font-extrabold tabular-nums">{value}</dd>
-			</div>
+	<ul class="grid grid-cols-3 gap-2.5">
+		{#each [product.yearMonth ? `${release}発売` : release, product.price === null ? '価格不明' : `¥${product.price}`, product.totalVariants === null ? '種類数不明' : `全${product.totalVariants}種`] as value (value)}
+			<!-- 2行分を確保して上下中央に置く。折り返しで箱の高さを変えない -->
+			<li
+				class="min-h-[2lh] content-center rounded-2xl bg-surface px-2 py-4 text-center text-sm font-extrabold tabular-nums shadow-clay"
+			>
+				{value}
+			</li>
 		{/each}
-	</dl>
+	</ul>
 
 	{#if product.variants.length > 0}
 		<section class="rounded-3xl bg-surface p-4 shadow-clay">

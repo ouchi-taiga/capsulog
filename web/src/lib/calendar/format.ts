@@ -18,14 +18,17 @@ export function formatDetail(precision: string | null, detail: string | null): s
 	return null;
 }
 
-/** 発売時期の全体表記。「2026年10月上旬」など */
+/** 発売時期の全体表記。「2026年10月上旬」「2026年6月 6/15週」など */
 export function formatRelease(
 	yearMonth: string | null,
 	precision: string | null,
 	detail: string | null
 ): string {
 	const base = formatYearMonth(yearMonth);
-	return base + (formatDetail(precision, detail) ?? '');
+	const suffix = formatDetail(precision, detail);
+	if (!suffix) return base;
+	// 週は日付が続いて読めるため、区切りを入れる
+	return precision === 'week' ? `${base} ${suffix}` : base + suffix;
 }
 
 /* 旬・週が今月の何日目までかかるか。発売済みの判定にだけ使う */
