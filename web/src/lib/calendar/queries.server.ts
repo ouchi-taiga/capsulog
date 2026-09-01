@@ -38,6 +38,10 @@ const RELEASE_ORDER = `
 	END
 `;
 
+function escapeLike(value: string): string {
+	return value.replace(/[\\%_]/g, (character) => '\\' + character);
+}
+
 /** 商品を持つメーカーの一覧 */
 export async function listMakers(db: D1Database): Promise<Maker[]> {
 	const { results } = await db
@@ -78,7 +82,7 @@ export async function listProducts(
 	if (filters.priceBand === '500') where.push('p.price >= 500');
 	if (filters.keyword) {
 		where.push(`p.name LIKE ? ESCAPE '\\'`);
-		binds.push(`%${filters.keyword.replace(/[\\%_]/g, (c) => '\\' + c)}%`);
+		binds.push(`%${escapeLike(filters.keyword)}%`);
 	}
 
 	const order =
@@ -105,6 +109,30 @@ export async function listProducts(
 		else groups.push({ yearMonth: item.yearMonth, items: [item] });
 	}
 	return { groups, total: items.length, hasMore };
+}
+
+/** シリーズ判定に使う商品名の頭。最初の語から末尾の数字を落とす */
+function seriesPrefix(name: string): string | null {
+	const token = name.split(/\s+/)[0] ?? '';
+	const prefix = token.replace(/[0-9０-９]+$/, '');
+	return prefix.length >= 2 ? prefix : null;
+}
+
+/** 名前の頭が同じ商品。シリーズの前作・続編を新しい順に返す */
+export async function listSeriesProducts(
+	db: D1Database,
+	product: ProductListItem
+): Promise<ProductListItem[]> {
+	const prefix = seriesPrefix(product.name);
+	if (!prefix) return [];
+	const { results } = await db
+		.prepare(
+			`${SELECT_ITEM} WHERE p.id != ? AND p.name LIKE ? ESCAPE '\\'
+			 ORDER BY p.release_year_month DESC LIMIT 6`
+		)
+		.bind(product.id, `${escapeLike(prefix)}%`)
+		.all<ProductListItem>();
+	return results;
 }
 
 /** 商品1件と、そのラインナップ */

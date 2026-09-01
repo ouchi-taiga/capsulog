@@ -3,6 +3,7 @@
 	import { formatRelease } from '$lib/calendar/format';
 	import CapsuleRow from '$lib/calendar/components/CapsuleRow.svelte';
 	import MakerTag from '$lib/calendar/components/MakerTag.svelte';
+	import ProductCard from '$lib/calendar/components/ProductCard.svelte';
 
 	let { data } = $props();
 	let product = $derived(data.product);
@@ -72,6 +73,20 @@
 		公式サイトで見る ↗
 	</a>
 	<p class="text-center text-[11px] text-faint">情報の出典はメーカー公式サイト</p>
+
+	{#if data.series.length > 0}
+		<section class="pt-2">
+			<h2 class="flex items-baseline gap-2.5 px-1 pb-2.5">
+				<span class="text-sm font-extrabold">シリーズの商品</span>
+				<span class="deco-wave ml-1.5 h-2 flex-1" aria-hidden="true"></span>
+			</h2>
+			<ul class="flex flex-col gap-4 sm:grid sm:grid-cols-2">
+				{#each data.series as item (item.id)}
+					<li><ProductCard {item} /></li>
+				{/each}
+			</ul>
+		</section>
+	{/if}
 </main>
 
 <a

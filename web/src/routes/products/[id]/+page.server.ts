@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { getProduct } from '$lib/calendar/queries.server';
+import { getProduct, listSeriesProducts } from '$lib/calendar/queries.server';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ platform, params }) => {
@@ -11,5 +11,7 @@ export const load: PageServerLoad = async ({ platform, params }) => {
 
 	const product = await getProduct(db, id);
 	if (!product) error(404, '商品が見つかりません');
-	return { product };
+
+	const series = await listSeriesProducts(db, product);
+	return { product, series };
 };

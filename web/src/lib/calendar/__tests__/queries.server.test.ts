@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createTestDb } from '$lib/common/testing/d1';
-import { getProduct, listMakers, listProducts } from '../queries.server';
+import { getProduct, listMakers, listProducts, listSeriesProducts } from '../queries.server';
 
 let db: D1Database;
 let nextId = 1;
@@ -160,6 +160,32 @@ describe('getProduct', () => {
 
 	it('存在しない id は null', async () => {
 		expect(await getProduct(db, 9999)).toBeNull();
+	});
+});
+
+describe('listSeriesProducts', () => {
+	async function itemAt(id: number) {
+		const product = await getProduct(db, id);
+		if (!product) throw new Error(`product not found: ${id}`);
+		return product;
+	}
+
+	it('名前の頭が同じ商品を新しい順に返す', async () => {
+		const id = await seed({ name: '合掌する動物たち 第2弾', yearMonth: '2026-10' });
+		await seed({ name: '合掌する動物たち', yearMonth: '2025-04' });
+		await seed({ name: '合掌する動物たち 第3弾', yearMonth: '2026-12' });
+		await seed({ name: '合掌ペンギン', yearMonth: '2026-10' });
+
+		const series = await listSeriesProducts(db, await itemAt(id));
+		expect(series.map((item) => item.name)).toEqual(['合掌する動物たち 第3弾', '合掌する動物たち']);
+	});
+
+	it('末尾の数字を無視して同名シリーズを拾う', async () => {
+		const id = await seed({ name: 'トミカキーホルダー8' });
+		await seed({ name: 'トミカキーホルダー7' });
+
+		const series = await listSeriesProducts(db, await itemAt(id));
+		expect(series.map((item) => item.name)).toEqual(['トミカキーホルダー7']);
 	});
 });
 
