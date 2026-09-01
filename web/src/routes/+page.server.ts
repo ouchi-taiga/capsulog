@@ -1,15 +1,38 @@
+import { error } from '@sveltejs/kit';
+import { currentYearMonth } from '$lib/calendar/format';
+import { listMakers, listProducts, type ListFilters } from '$lib/calendar/queries.server';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ platform }) => {
+export const load: PageServerLoad = async ({ platform, url }) => {
 	const db = platform?.env.DB;
-	if (!db) {
-		return { db: false, tables: [] };
-	}
+	if (!db) error(500, 'D1 に接続できない');
 
-	// D1 に届いているかの確認。テーブルはまだ無い
-	const { results } = await db
-		.prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")
-		.all<{ name: string }>();
+	const month = url.searchParams.get('month');
+	const makerCode = url.searchParams.get('maker') ?? undefined;
+	const priceBand = url.searchParams.get('price') ?? undefined;
+	const keyword = url.searchParams.get('q')?.trim() || undefined;
+	const sort = url.searchParams.get('sort') === 'price' ? 'price' : 'release';
 
-	return { db: true, tables: results.map((r) => r.name) };
+	// 月の指定がなければ今月と来月。検索時は全期間から探す
+	let yearMonths: string[] = [];
+	if (month === null && !keyword) yearMonths = [currentYearMonth(0), currentYearMonth(1)];
+	else if (month && /^\d{4}-\d{2}$/.test(month)) yearMonths = [month];
+
+	const filters: ListFilters = {
+		yearMonths,
+		tbdOnly: month === 'tbd',
+		makerCode,
+		priceBand:
+			priceBand === '300' || priceBand === '400' || priceBand === '500' ? priceBand : undefined,
+		keyword,
+		sort
+	};
+
+	const [makers, list] = await Promise.all([listMakers(db), listProducts(db, filters)]);
+	return {
+		makers,
+		...list,
+		monthOptions: [0, 1, 2].map((offset) => currentYearMonth(offset)),
+		filters: { month, makerCode, priceBand, keyword, sort }
+	};
 };
