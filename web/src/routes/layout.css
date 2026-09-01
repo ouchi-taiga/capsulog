@@ -1,1 +1,59 @@
+@import '@fontsource/m-plus-rounded-1c/400.css';
+@import '@fontsource/m-plus-rounded-1c/700.css';
+@import '@fontsource/m-plus-rounded-1c/800.css';
 @import 'tailwindcss';
+
+/* カラーテーマのトークン。色はここだけに書き、画面はユーティリティ経由で参照する */
+:root {
+	--ground: #fcfaf7;
+	--surface: #fffefd;
+	--ink: #4a3d51;
+	--faint: #a39588;
+	--accent: #f2766b;
+	--on-accent: #ffffff;
+	--sub: #64bfae;
+	--dot: #efe6db;
+
+	/* クレイの影。地色に依存するためテーマごとに差し替える */
+	--sh: rgba(178, 152, 124, 0.32);
+	--hi: #ffffff;
+	--hi-in: rgba(255, 255, 255, 0.95);
+	--sh-in: rgba(190, 160, 132, 0.18);
+}
+
+@theme inline {
+	--font-rounded: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', sans-serif;
+
+	--color-ground: var(--ground);
+	--color-surface: var(--surface);
+	--color-ink: var(--ink);
+	--color-faint: var(--faint);
+	--color-accent: var(--accent);
+	--color-on-accent: var(--on-accent);
+	--color-sub: var(--sub);
+
+	--shadow-clay:
+		9px 11px 22px var(--sh), -5px -5px 12px var(--hi), inset 2px 3px 5px var(--hi-in),
+		inset -3px -5px 9px var(--sh-in);
+	--shadow-clay-sm: 4px 5px 10px var(--sh), -3px -3px 8px var(--hi);
+	--shadow-clay-pressed:
+		5px 6px 12px var(--sh), inset 2px 3px 4px rgba(255, 255, 255, 0.45),
+		inset -2px -4px 6px rgba(163, 55, 47, 0.4);
+}
+
+body {
+	background: var(--ground);
+	color: var(--ink);
+	font-family: var(--font-rounded);
+}
+
+/* メンフィスの装飾。置く場所はヘッダ・見出し・カードの隅に限る */
+.deco-dots {
+	background-image: radial-gradient(var(--dot) 1.8px, transparent 1.8px);
+	background-size: 15px 15px;
+}
+
+.deco-wave {
+	background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="8" viewBox="0 0 28 8"><path d="M0 6 Q 3.5 0, 7 4 T 14 4 T 21 4 T 28 4" fill="none" stroke="%2364bfae" stroke-width="2.4" stroke-linecap="round"/></svg>')
+		repeat-x left center / 28px 8px;
+}
