@@ -6,7 +6,8 @@
 		kitan: 'bg-[#f2766b]',
 		tarlin: 'bg-[#64bfae]',
 		takaratomy: 'bg-[#8a92e3]',
-		qualia: 'bg-[#e8a94f]'
+		qualia: 'bg-[#e8a94f]',
+		parade: 'bg-[#e884b8]'
 	};
 </script>
 

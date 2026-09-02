@@ -16,12 +16,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import d1
-from makers import JST, kitan, qualia, takaratomy, tarlin
+from makers import JST, kitan, parade, qualia, takaratomy, tarlin
 from validate import check
 
 logger = logging.getLogger("batch")
 
-MAKERS = {m.CODE: m for m in (kitan, tarlin, takaratomy, qualia)}
+MAKERS = {m.CODE: m for m in (kitan, tarlin, takaratomy, qualia, parade)}
 # D1 の REST API は1文あたりのバインドパラメータが100個まで
 PARAM_LIMIT = 100
 CHUNK = 25

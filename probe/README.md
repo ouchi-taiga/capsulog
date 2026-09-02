@@ -11,6 +11,7 @@ uv run probe/kitan.py
 uv run probe/tarlin.py
 uv run probe/takaratomy.py
 uv run probe/qualia.py
+uv run probe/parade.py
 ```
 
 各スクリプトは数十件を取得し、欠損と値の分布を出力する。取得件数を絞ってあるため、相手サーバーへの負荷は小さい。
