@@ -54,6 +54,34 @@ body {
 	font-family: var(--font-rounded);
 }
 
+/* 押せるものの共通の動き。ホバーで浮き、押すと沈む。
+   長押しの文字選択とメニューは :active が固まる原因になるため切る */
+.pressable {
+	transition: transform 0.15s ease;
+	touch-action: manipulation;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
+	-webkit-user-drag: none;
+}
+@media (hover: hover) {
+	.pressable:hover {
+		transform: translateY(-2px);
+	}
+}
+.pressable:active {
+	transform: translateY(1px) scale(0.98);
+	filter: brightness(0.95);
+}
+@media (prefers-reduced-motion: reduce) {
+	.pressable,
+	.pressable:hover,
+	.pressable:active {
+		transition: none;
+		transform: none;
+	}
+}
+
 /* メンフィスの装飾。置く場所はヘッダ・見出し・カードの隅に限る */
 .deco-dots {
 	background-image: radial-gradient(var(--dot) 1.8px, transparent 1.8px);

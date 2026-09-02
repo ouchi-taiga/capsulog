@@ -11,7 +11,7 @@
 
 <a
 	href={resolve('/products/[id]', { id: String(item.id) })}
-	class="relative flex h-full flex-col overflow-hidden rounded-3xl bg-surface px-4 py-3.5 shadow-clay"
+	class="pressable relative flex h-full flex-col overflow-hidden rounded-3xl bg-surface px-4 py-3.5 shadow-clay"
 >
 	<span class="deco absolute -top-3 -right-3 h-10 w-10 opacity-15" aria-hidden="true"></span>
 	<div><MakerTag code={item.makerCode} name={item.makerName} /></div>

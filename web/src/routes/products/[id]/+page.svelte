@@ -82,7 +82,7 @@
 		href={product.officialUrl}
 		target="_blank"
 		rel="noopener noreferrer"
-		class="rounded-full bg-accent py-3 text-center text-body font-bold text-on-accent shadow-clay-pressed"
+		class="pressable rounded-full bg-accent py-3 text-center text-body font-bold text-on-accent shadow-clay-pressed"
 	>
 		公式サイトで見る ↗
 	</a>
@@ -102,7 +102,7 @@
 
 <a
 	href={resolve('/')}
-	class="fixed bottom-5 left-4 z-10 rounded-full bg-surface px-5 py-3 text-body font-extrabold shadow-clay"
+	class="pressable fixed bottom-5 left-4 z-10 rounded-full bg-surface px-5 py-3 text-body font-extrabold shadow-clay"
 >
 	← カレンダー
 </a>

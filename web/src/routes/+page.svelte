@@ -142,7 +142,7 @@
 			aria-expanded={filtersOpen}
 			aria-label="絞り込み"
 			class={[
-				'relative grid h-10 w-10 flex-none place-items-center rounded-full',
+				'pressable relative grid h-10 w-10 flex-none place-items-center rounded-full',
 				filtersOpen ? 'bg-accent text-on-accent shadow-clay-pressed' : 'bg-surface shadow-clay-sm'
 			]}
 		>
@@ -189,7 +189,7 @@
 						type="button"
 						aria-label="閉じる"
 						onclick={() => (filtersOpen = false)}
-						class="grid h-8 w-8 place-items-center rounded-full bg-ground text-faint shadow-clay-sm"
+						class="pressable grid h-8 w-8 place-items-center rounded-full bg-ground text-faint shadow-clay-sm"
 					>
 						✕
 					</button>
@@ -202,7 +202,7 @@
 								<a
 									href={chip.href}
 									class={[
-										'rounded-full px-3.5 py-1.5 text-note font-bold whitespace-nowrap',
+										'pressable rounded-full px-3.5 py-1.5 text-note font-bold whitespace-nowrap',
 										chip.on
 											? 'bg-accent text-on-accent shadow-clay-pressed'
 											: 'bg-ground text-faint shadow-clay-sm'
@@ -223,7 +223,7 @@
 			{#each applied as chip (chip.label)}
 				<a
 					href={chip.href}
-					class="rounded-full bg-accent px-3.5 py-1.5 text-note font-bold text-on-accent shadow-clay-pressed"
+					class="pressable rounded-full bg-accent px-3.5 py-1.5 text-note font-bold text-on-accent shadow-clay-pressed"
 				>
 					{chip.label} ✕
 				</a>
