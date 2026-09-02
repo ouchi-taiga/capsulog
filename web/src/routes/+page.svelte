@@ -77,6 +77,12 @@
 		{ label: '価格が安い順', href: link('sort', 'price'), on: data.filters.sort === 'price' }
 	]);
 
+	// これから発売の月を選んでいるか。空だったときの案内を変える
+	let isFutureMonth = $derived(
+		data.filters.month === 'later' ||
+			(!!data.filters.month && data.filters.month > data.thisYearMonth)
+	);
+
 	/** 選択中の条件。既定値のままのものは出さない */
 	let applied = $derived(
 		[
@@ -289,7 +295,16 @@
 
 	<div class="pt-5">
 		{#if data.groups.length === 0}
-			<p class="py-16 text-center text-body text-faint">この条件の商品はありません</p>
+			<div class="flex flex-col gap-2 py-16 text-center text-body text-faint">
+				<p>この条件の商品はありません</p>
+				{#if isFutureMonth}
+					<!-- 句点で折り返す。文の途中では改行しない -->
+					<p class="text-note">
+						<span class="inline-block">メーカーの発表は発売の1〜2ヶ月前です。</span>
+						<span class="inline-block">発表までしばらくお待ちください。</span>
+					</p>
+				{/if}
+			</div>
 		{:else}
 			<div class="flex flex-col gap-6">
 				{#each data.groups as group (group.yearMonth ?? 'unknown')}
