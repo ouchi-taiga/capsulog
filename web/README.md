@@ -152,7 +152,7 @@ Tailwind のユーティリティで書く。独自の CSS はグローバルな
 
 | ユーティリティ | サイズ | 役割 |
 |---|---|---|
-| `text-site` | 20px | サイト名 |
+| `text-site` | 24px | サイト名。ここだけ刻みの外 |
 | `text-title` | 18px | ページタイトル |
 | `text-heading` | 16px | 見出し |
 | `text-body` | 14px | 中身のデータ |

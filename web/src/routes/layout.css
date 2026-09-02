@@ -25,7 +25,7 @@
 	--font-rounded: 'M PLUS Rounded 1c', 'Hiragino Maru Gothic ProN', sans-serif;
 
 	/* 文字サイズは役割で決める。本文14pxを基準に2px刻み */
-	--text-site: 1.25rem; /* 20px サイト名 */
+	--text-site: 1.5rem; /* 24px サイト名。ここだけ2px刻みの外 */
 	--text-title: 1.125rem; /* 18px ページタイトル */
 	--text-heading: 1rem; /* 16px 見出し */
 	--text-body: 0.875rem; /* 14px 中身のデータ */

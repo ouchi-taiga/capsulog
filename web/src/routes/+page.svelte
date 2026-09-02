@@ -114,60 +114,107 @@
 	/>
 </svelte:head>
 
-<main class="mx-auto max-w-2xl px-4 pb-16 lg:max-w-5xl">
-	<div class="flex items-center gap-2.5 pt-3">
-		<form method="GET" action="/" class="flex-1">
-			{#if data.filters.month}<input type="hidden" name="month" value={data.filters.month} />{/if}
-			{#if data.filters.makerCode}<input
-					type="hidden"
-					name="maker"
-					value={data.filters.makerCode}
-				/>{/if}
-			{#if data.filters.priceBand}<input
-					type="hidden"
-					name="price"
-					value={data.filters.priceBand}
-				/>{/if}
-			<input
-				type="search"
-				name="q"
-				value={data.filters.keyword ?? ''}
-				placeholder="商品名で検索"
-				class="w-full rounded-full bg-surface px-5 py-2.5 text-body shadow-clay-sm outline-none placeholder:text-faint focus:ring-2 focus:ring-accent"
-			/>
-		</form>
-		<button
-			type="button"
-			onclick={() => (filtersOpen = !filtersOpen)}
-			aria-expanded={filtersOpen}
-			aria-label="絞り込み"
-			class={[
-				'pressable relative grid h-10 w-10 flex-none place-items-center rounded-full',
-				filtersOpen ? 'bg-accent text-on-accent shadow-clay-pressed' : 'bg-surface shadow-clay-sm'
-			]}
-		>
-			<!-- スライダーのアイコン -->
-			<svg
-				width="18"
-				height="18"
-				viewBox="0 0 18 18"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				aria-hidden="true"
-			>
-				<path d="M2 5h14M2 13h14" />
-				<circle cx="7" cy="5" r="2.2" fill="var(--surface)" />
-				<circle cx="12" cy="13" r="2.2" fill="var(--surface)" />
+<!-- 上部の色エリア。固定ヘッダーの分だけ上に余白を取り、中身が高さを決める -->
+<div data-hero class="relative overflow-hidden bg-accent px-4 pt-20 pb-7">
+	<div class="relative mx-auto max-w-2xl lg:max-w-5xl">
+		<!-- 円とカプセルは列の内側に置く。画面端に寄せると偶然そこにある形に見える -->
+		<div
+			class="absolute top-2 -right-24 h-56 w-56 rounded-full bg-white/15"
+			aria-hidden="true"
+		></div>
+		<div class="absolute -top-4 right-[10%] hidden -rotate-12 sm:block" aria-hidden="true">
+			<svg width="60" height="69" viewBox="0 0 40 46">
+				<path d="M4 24 h32 v4 a16 16 0 0 1 -32 0 z" fill="#fffefd" />
+				<path d="M4 24 a16 16 0 0 1 32 0 z" fill="#64bfae" />
+				<ellipse
+					cx="13"
+					cy="14"
+					rx="4.5"
+					ry="6.5"
+					fill="#ffffff"
+					opacity="0.4"
+					transform="rotate(-25 13 14)"
+				/>
 			</svg>
-			{#if applied.length > 0 && !filtersOpen}
-				<span class="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-accent" aria-hidden="true"
-				></span>
-			{/if}
-		</button>
-	</div>
+		</div>
+		<div class="absolute top-10 right-[24%] hidden rotate-12 sm:block" aria-hidden="true">
+			<svg width="40" height="46" viewBox="0 0 40 46">
+				<path d="M4 24 h32 v4 a16 16 0 0 1 -32 0 z" fill="#fffefd" />
+				<path d="M4 24 a16 16 0 0 1 32 0 z" fill="#e8a94f" />
+			</svg>
+		</div>
+		<div class="absolute top-14 right-[3%] hidden rotate-6 opacity-60 sm:block" aria-hidden="true">
+			<svg width="32" height="37" viewBox="0 0 40 46">
+				<path d="M4 24 h32 v4 a16 16 0 0 1 -32 0 z" fill="#fffefd" />
+				<path d="M4 24 a16 16 0 0 1 32 0 z" fill="#8a92e3" />
+			</svg>
+		</div>
 
+		<p class="text-heading font-bold text-white">カプセルトイの新作を、メーカー横断でチェック</p>
+		<div class="flex flex-wrap gap-2 pt-2.5" aria-label="掲載の規模">
+			<span class="rounded-full bg-white/20 px-3 py-1 text-note font-bold text-white">
+				今月の新作 {data.counts.thisMonth}件
+			</span>
+			<span class="rounded-full bg-white/20 px-3 py-1 text-note font-bold text-white">
+				{data.makers.length}社 {data.counts.total.toLocaleString()}件を掲載
+			</span>
+		</div>
+		<div class="flex max-w-xl items-center gap-2.5 pt-4">
+			<form method="GET" action="/" class="flex-1">
+				{#if data.filters.month}<input type="hidden" name="month" value={data.filters.month} />{/if}
+				{#if data.filters.makerCode}<input
+						type="hidden"
+						name="maker"
+						value={data.filters.makerCode}
+					/>{/if}
+				{#if data.filters.priceBand}<input
+						type="hidden"
+						name="price"
+						value={data.filters.priceBand}
+					/>{/if}
+				<input
+					type="search"
+					name="q"
+					value={data.filters.keyword ?? ''}
+					placeholder="商品名で検索"
+					class="w-full rounded-full bg-surface px-5 py-2.5 text-body shadow-clay-sm outline-none placeholder:text-faint focus:ring-2 focus:ring-accent"
+				/>
+			</form>
+			<button
+				type="button"
+				onclick={() => (filtersOpen = !filtersOpen)}
+				aria-expanded={filtersOpen}
+				aria-label="絞り込み"
+				class={[
+					'pressable relative grid h-10 w-10 flex-none place-items-center rounded-full',
+					filtersOpen ? 'bg-ink text-white shadow-clay-pressed' : 'bg-surface shadow-clay-sm'
+				]}
+			>
+				<!-- スライダーのアイコン -->
+				<svg
+					width="18"
+					height="18"
+					viewBox="0 0 18 18"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					aria-hidden="true"
+				>
+					<path d="M2 5h14M2 13h14" />
+					<circle cx="7" cy="5" r="2.2" fill="var(--surface)" />
+					<circle cx="12" cy="13" r="2.2" fill="var(--surface)" />
+				</svg>
+				{#if applied.length > 0 && !filtersOpen}
+					<span class="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-ink" aria-hidden="true"
+					></span>
+				{/if}
+			</button>
+		</div>
+	</div>
+</div>
+
+<main class="mx-auto max-w-2xl px-4 pb-16 lg:max-w-5xl">
 	{#if filtersOpen}
 		<div class="fixed inset-0 z-20">
 			<button
@@ -223,7 +270,7 @@
 			{#each applied as chip (chip.label)}
 				<a
 					href={chip.href}
-					class="pressable rounded-full bg-accent px-3.5 py-1.5 text-note font-bold text-on-accent shadow-clay-pressed"
+					class="pressable rounded-full bg-surface px-3.5 py-1.5 text-note font-bold text-accent shadow-clay-sm"
 				>
 					{chip.label} ✕
 				</a>

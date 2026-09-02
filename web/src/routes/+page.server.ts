@@ -1,6 +1,11 @@
 import { error } from '@sveltejs/kit';
 import { currentYearMonth } from '$lib/calendar/format';
-import { listMakers, listProducts, type ListFilters } from '$lib/calendar/queries.server';
+import {
+	countProducts,
+	listMakers,
+	listProducts,
+	type ListFilters
+} from '$lib/calendar/queries.server';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ platform, url }) => {
@@ -34,9 +39,14 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 		sort
 	};
 
-	const [makers, list] = await Promise.all([listMakers(db), listProducts(db, filters)]);
+	const [makers, list, counts] = await Promise.all([
+		listMakers(db),
+		listProducts(db, filters),
+		countProducts(db, currentYearMonth(0))
+	]);
 	return {
 		makers,
+		counts,
 		...list,
 		previousYearMonth: currentYearMonth(-1),
 		thisYearMonth: currentYearMonth(0),

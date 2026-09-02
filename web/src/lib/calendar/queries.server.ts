@@ -111,6 +111,22 @@ export async function listProducts(
 	return { groups, total: items.length, hasMore };
 }
 
+/** ヒーローに出す件数。今月の新作の数と掲載の全体数 */
+export async function countProducts(
+	db: D1Database,
+	yearMonth: string
+): Promise<{ thisMonth: number; total: number }> {
+	const row = await db
+		.prepare(
+			`SELECT (SELECT count(*) FROM products WHERE release_year_month = ?) AS thisMonth,
+			        count(*) AS total
+			 FROM products`
+		)
+		.bind(yearMonth)
+		.first<{ thisMonth: number; total: number }>();
+	return row ?? { thisMonth: 0, total: 0 };
+}
+
 /** シリーズ判定に使う商品名の頭。最初の語から末尾の数字を落とす */
 function seriesPrefix(name: string): string | null {
 	const token = name.split(/\s+/)[0] ?? '';
