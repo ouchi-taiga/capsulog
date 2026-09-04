@@ -183,7 +183,7 @@
 					name="q"
 					value={data.filters.keyword ?? ''}
 					placeholder="商品名で検索"
-					class="w-full rounded-full bg-surface px-5 py-2.5 text-body shadow-clay-sm outline-none placeholder:text-faint focus:ring-2 focus:ring-accent"
+					class="w-full rounded-full bg-surface px-5 py-2 text-input shadow-clay-on-color outline-none placeholder:text-faint focus:ring-2 focus:ring-white"
 				/>
 			</form>
 			<button
@@ -193,7 +193,7 @@
 				aria-label="絞り込み"
 				class={[
 					'pressable relative grid h-10 w-10 flex-none place-items-center rounded-full',
-					filtersOpen ? 'bg-ink text-white shadow-clay-pressed' : 'bg-surface shadow-clay-sm'
+					filtersOpen ? 'bg-ink text-white shadow-clay-pressed' : 'bg-surface shadow-clay-on-color'
 				]}
 			>
 				<!-- スライダーのアイコン -->

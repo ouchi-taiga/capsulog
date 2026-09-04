@@ -29,6 +29,7 @@
 	--text-title: 1.125rem; /* 18px ページタイトル */
 	--text-heading: 1rem; /* 16px 見出し */
 	--text-body: 0.875rem; /* 14px 中身のデータ */
+	--text-input: 1rem; /* 16px 入力欄。これ未満だと iOS Safari が勝手に拡大する */
 	--text-note: 0.75rem; /* 12px 補足・チップ */
 
 	--color-ground: var(--ground);
@@ -43,6 +44,8 @@
 		9px 11px 22px var(--sh), -5px -5px 12px var(--hi), inset 2px 3px 5px var(--hi-in),
 		inset -3px -5px 9px var(--sh-in);
 	--shadow-clay-sm: 4px 5px 10px var(--sh), -3px -3px 8px var(--hi);
+	/* 色エリアに置くとき。白いハイライトは地色から浮いて滲むため落とす */
+	--shadow-clay-on-color: 3px 4px 10px rgba(90, 40, 35, 0.18);
 	--shadow-clay-pressed:
 		5px 6px 12px var(--sh), inset 2px 3px 4px rgba(255, 255, 255, 0.45),
 		inset -2px -4px 6px rgba(163, 55, 47, 0.4);
