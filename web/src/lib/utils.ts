@@ -1,6 +1,16 @@
 import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { extendTailwindMerge } from 'tailwind-merge';
 
+/* 独自の文字サイズを教える。既定では text-note を色と読み違え、text-ink と競合させて落としてしまう */
+const twMerge = extendTailwindMerge({
+	extend: {
+		classGroups: {
+			'font-size': [{ text: ['site', 'title', 'heading', 'body', 'input', 'note'] }]
+		}
+	}
+});
+
+/** クラスを結合し、競合するユーティリティは後に書いたものを残す */
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }

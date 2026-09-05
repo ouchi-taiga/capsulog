@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import * as Select from '$lib/common/components/ui/select';
 	import { fade, fly } from 'svelte/transition';
 	import { MediaQuery, SvelteURLSearchParams } from 'svelte/reactivity';
 	import { formatYearMonth } from '$lib/calendar/format';
@@ -72,15 +74,19 @@
 		}))
 	);
 
-	// 並び替えの form が送る、sort 以外の現在の条件
-	let keptParams = $derived([...page.url.searchParams.entries()].filter(([key]) => key !== 'sort'));
-
 	const SORT_LABELS = {
 		'release-desc': '発売が新しい順',
 		'release-asc': '発売が古い順',
 		'price-asc': '価格が安い順',
 		'price-desc': '価格が高い順'
 	} as const;
+
+	/** 並び替えを選んだら、その条件で開き直す */
+	function selectSort(value: string) {
+		// link() は resolve() 起点でクエリを組むが、静的解析では追えない
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		if (value !== data.activeSort) goto(link('sort', value));
+	}
 
 	// これから発売の月を選んでいるか。空だったときの案内を変える
 	let isFutureMonth = $derived(
@@ -298,29 +304,18 @@
 	{/if}
 
 	{#if data.groups.length > 0}
-		<div class="flex items-center justify-end pt-3">
-			<!-- 現在の絞り込みを引き継ぐ。sort だけ select で差し替える -->
-			<form class="flex items-center gap-2">
-				{#each keptParams as [key, value] (key)}
-					<input type="hidden" name={key} {value} />
-				{/each}
-				<label class="flex items-center gap-2">
-					<span class="text-note font-bold text-faint">並び替え</span>
-					<select
-						name="sort"
-						value={data.activeSort}
-						onchange={(event) => event.currentTarget.form?.requestSubmit()}
-						class="pressable rounded-full bg-surface py-1.5 pr-8 pl-3.5 text-note font-bold shadow-clay-sm outline-none focus:ring-2 focus:ring-accent"
-					>
-						{#each Object.entries(SORT_LABELS) as [value, label] (value)}
-							<option {value}>{label}</option>
-						{/each}
-					</select>
-				</label>
-				<noscript
-					><button type="submit" class="text-note font-bold text-accent">適用</button></noscript
-				>
-			</form>
+		<div class="flex items-center justify-end gap-2 pt-3">
+			<span class="text-note font-bold text-faint" id="sort-label">並び替え</span>
+			<Select.Root type="single" value={data.activeSort} onValueChange={selectSort}>
+				<Select.Trigger aria-labelledby="sort-label">
+					{SORT_LABELS[data.activeSort]}
+				</Select.Trigger>
+				<Select.Content align="end" sideOffset={8}>
+					{#each Object.entries(SORT_LABELS) as [value, label] (value)}
+						<Select.Item {value} {label} />
+					{/each}
+				</Select.Content>
+			</Select.Root>
 		</div>
 	{/if}
 

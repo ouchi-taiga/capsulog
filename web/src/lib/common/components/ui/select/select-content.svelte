@@ -11,9 +11,12 @@
 		ref = $bindable(null),
 		class: className,
 		sideOffset = 4,
+		// 画面端に貼り付かせない。クレイの影は外側に広がるため余白が要る
+		collisionPadding = 16,
 		portalProps,
 		children,
-		preventScroll = true,
+		// 背面のスクロールを止めない。パネルはトリガーに追従するため、動いても破綻しない
+		preventScroll = false,
 		...restProps
 	}: WithoutChild<SelectPrimitive.ContentProps> & {
 		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof SelectPortal>>;
@@ -24,10 +27,11 @@
 	<SelectPrimitive.Content
 		bind:ref
 		{sideOffset}
+		{collisionPadding}
 		{preventScroll}
 		data-slot="select-content"
 		class={cn(
-			'bg-popover text-popover-foreground ring-foreground/10 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 relative isolate z-50 min-w-36 overflow-x-hidden overflow-y-auto rounded-md shadow-md ring-1 duration-100',
+			'relative isolate z-50 min-w-36 overflow-x-hidden overflow-y-auto rounded-2xl bg-surface p-1.5 text-ink shadow-clay',
 			className
 		)}
 		{...restProps}
