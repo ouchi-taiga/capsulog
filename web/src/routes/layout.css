@@ -2,6 +2,7 @@
 @import '@fontsource/m-plus-rounded-1c/700.css';
 @import '@fontsource/m-plus-rounded-1c/800.css';
 @import 'tailwindcss';
+@import 'shadcn-svelte/tailwind.css';
 
 /* カラーテーマのトークン。色はここだけに書き、画面はユーティリティ経由で参照する */
 :root {

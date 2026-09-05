@@ -3,3 +3,5 @@ allowBuilds:
   esbuild: true
   protobufjs: true
   workerd: true
+minimumReleaseAgeExclude:
+  - '@lucide/svelte@1.41.0'
