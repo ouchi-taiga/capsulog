@@ -4,7 +4,8 @@ import {
 	countProducts,
 	listMakers,
 	listProducts,
-	type ListFilters
+	type ListFilters,
+	type Sort
 } from '$lib/calendar/queries.server';
 import type { PageServerLoad } from './$types';
 
@@ -16,7 +17,11 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 	const makerCode = url.searchParams.get('maker') ?? undefined;
 	const priceBand = url.searchParams.get('price') ?? undefined;
 	const keyword = url.searchParams.get('q')?.trim() || undefined;
-	const sort = url.searchParams.get('sort') === 'price' ? 'price' : 'release';
+
+	const SORTS: Sort[] = ['release-asc', 'release-desc', 'price-asc', 'price-desc'];
+	const requested = SORTS.find((value) => value === url.searchParams.get('sort'));
+	// 検索は月の絞り込みが外れるため、指定が無いと最古の年から並ぶ。新作を探す動機に合わせる
+	const sort = requested ?? (keyword ? 'release-desc' : undefined);
 
 	// 月の指定がなければ今月と来月。検索時は全期間から探す
 	let yearMonths: string[] = [];
@@ -53,6 +58,8 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 		nextYearMonth: currentYearMonth(1),
 		laterYearMonth: currentYearMonth(2),
 		earlierYearMonth: currentYearMonth(-2),
-		filters: { month, makerCode, priceBand, keyword, sort }
+		// sort は URL で選ばれた値、activeSort は既定を含めて実際に効いている値
+		filters: { month, makerCode, priceBand, keyword, sort },
+		activeSort: sort ?? (month === 'earlier' ? 'release-desc' : 'release-asc')
 	};
 };

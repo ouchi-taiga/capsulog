@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import type { ProductListItem } from '../types';
-	import { formatDetail } from '../format';
+	import { formatDetail, formatYearMonth } from '../format';
 	import MakerTag from './MakerTag.svelte';
 
-	let { item }: { item: ProductListItem } = $props();
+	// showYearMonth は月で切らない並びのとき。見出しに月が出ないため、カードに出す
+	let { item, showYearMonth = false }: { item: ProductListItem; showYearMonth?: boolean } =
+		$props();
 
 	let detail = $derived(formatDetail(item.precision, item.detail));
 </script>
@@ -24,7 +26,11 @@
 	<div class="mt-auto flex gap-3.5 text-note font-bold text-faint tabular-nums">
 		<span>{item.price === null ? '価格不明' : `¥${item.price}`}</span>
 		{#if item.totalVariants !== null}<span>全{item.totalVariants}種</span>{/if}
-		{#if detail}<span>{detail}</span>{/if}
+		{#if showYearMonth}
+			<span>{formatYearMonth(item.yearMonth)}{detail ?? ''}</span>
+		{:else if detail}
+			<span>{detail}</span>
+		{/if}
 	</div>
 </a>
 

@@ -19,6 +19,8 @@ export type ProductListItem = {
 export type MonthGroup = {
 	yearMonth: string | null;
 	items: ProductListItem[];
+	/** 見出しの文言。月で切らない並びのときに使う */
+	heading?: string;
 };
 
 export type Variant = {

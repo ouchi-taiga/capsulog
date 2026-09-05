@@ -12,8 +12,11 @@ export type ListFilters = {
 	makerCode?: string;
 	priceBand?: '300' | '400' | '500';
 	keyword?: string;
-	sort?: 'release' | 'price';
+	/** 並び順。省略時は月の絞り込みに合わせて向きを決める */
+	sort?: Sort;
 };
+
+export type Sort = 'release-asc' | 'release-desc' | 'price-asc' | 'price-desc';
 
 /** 1回で取る上限。超えたら「続きがある」として返す */
 const PAGE_LIMIT = 300;
@@ -85,13 +88,19 @@ export async function listProducts(
 		binds.push(`%${escapeLike(filters.keyword)}%`);
 	}
 
-	const order =
-		filters.sort === 'price' ? 'p.price IS NULL, p.price, p.name' : `${RELEASE_ORDER}, p.name`;
-	// 過去をさかのぼる表示だけ新しい月が先。昇順だと最古の年から始まってしまう
-	const monthOrder = filters.untilYearMonth ? 'DESC' : 'ASC';
+	// 指定が無ければ現在から遠ざかる向き。過去をさかのぼる表示だけ新しい月が先になる
+	const sort: Sort = filters.sort ?? (filters.untilYearMonth ? 'release-desc' : 'release-asc');
+	const descending = sort.endsWith('-desc');
+	const direction = descending ? 'DESC' : 'ASC';
+
+	// 価格順は月を挟まない。月を先に見ると、月の中だけの価格順になって全体の高安が出ない
+	const order = sort.startsWith('price')
+		? `p.price IS NULL, p.price ${direction}, p.name`
+		: // 月をまたぐ向きに月の中も揃える。新しい順なら下旬が先に来る
+			`p.release_year_month ${direction}, ${RELEASE_ORDER} ${direction}, p.name`;
 	const sql = `${SELECT_ITEM}
 		${where.length ? 'WHERE ' + where.join(' AND ') : ''}
-		ORDER BY p.release_year_month IS NULL, p.release_year_month ${monthOrder}, ${order}
+		ORDER BY p.release_year_month IS NULL, ${order}
 		LIMIT ${PAGE_LIMIT + 1}`;
 
 	const { results } = await db
@@ -101,6 +110,13 @@ export async function listProducts(
 
 	const hasMore = results.length > PAGE_LIMIT;
 	const items = hasMore ? results.slice(0, PAGE_LIMIT) : results;
+
+	// 価格順は月が飛び飛びに並ぶ。月で切ると1件だけの見出しが延々と続くため、ひとまとめにする
+	if (sort.startsWith('price')) {
+		const heading = sort === 'price-asc' ? '価格が安い順' : '価格が高い順';
+		const groups = items.length > 0 ? [{ yearMonth: null, items, heading }] : [];
+		return { groups, total: items.length, hasMore };
+	}
 
 	const groups: MonthGroup[] = [];
 	for (const item of items) {

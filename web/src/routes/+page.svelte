@@ -72,10 +72,15 @@
 		}))
 	);
 
-	let sortChips = $derived([
-		{ label: '発売時期順', href: link('sort', null), on: data.filters.sort !== 'price' },
-		{ label: '価格が安い順', href: link('sort', 'price'), on: data.filters.sort === 'price' }
-	]);
+	// 並び替えの form が送る、sort 以外の現在の条件
+	let keptParams = $derived([...page.url.searchParams.entries()].filter(([key]) => key !== 'sort'));
+
+	const SORT_LABELS = {
+		'release-desc': '発売が新しい順',
+		'release-asc': '発売が古い順',
+		'price-asc': '価格が安い順',
+		'price-desc': '価格が高い順'
+	} as const;
 
 	// これから発売の月を選んでいるか。空だったときの案内を変える
 	let isFutureMonth = $derived(
@@ -100,8 +105,7 @@
 			data.filters.priceBand && {
 				label: { '300': '〜300円', '400': '400円台', '500': '500円〜' }[data.filters.priceBand],
 				href: link('price', null)
-			},
-			data.filters.sort === 'price' && { label: '価格が安い順', href: link('sort', null) }
+			}
 		].filter((chip) => !!chip)
 	);
 </script>
@@ -247,7 +251,7 @@
 						✕
 					</button>
 				</div>
-				{#each [['発売月', monthChips], ['メーカー', makerChips], ['価格', priceChips], ['並び順', sortChips]] as const as [label, chips] (label)}
+				{#each [['発売月', monthChips], ['メーカー', makerChips], ['価格', priceChips]] as const as [label, chips] (label)}
 					<div>
 						<p class="pb-2 text-note font-bold text-faint">{label}</p>
 						<div class="flex flex-wrap gap-2">
@@ -291,6 +295,33 @@
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href={link('q', null)} class="ml-2 font-bold text-accent">解除</a>
 		</p>
+	{/if}
+
+	{#if data.groups.length > 0}
+		<div class="flex items-center justify-end pt-3">
+			<!-- 現在の絞り込みを引き継ぐ。sort だけ select で差し替える -->
+			<form class="flex items-center gap-2">
+				{#each keptParams as [key, value] (key)}
+					<input type="hidden" name={key} {value} />
+				{/each}
+				<label class="flex items-center gap-2">
+					<span class="text-note font-bold text-faint">並び替え</span>
+					<select
+						name="sort"
+						value={data.activeSort}
+						onchange={(event) => event.currentTarget.form?.requestSubmit()}
+						class="pressable rounded-full bg-surface py-1.5 pr-8 pl-3.5 text-note font-bold shadow-clay-sm outline-none focus:ring-2 focus:ring-accent"
+					>
+						{#each Object.entries(SORT_LABELS) as [value, label] (value)}
+							<option {value}>{label}</option>
+						{/each}
+					</select>
+				</label>
+				<noscript
+					><button type="submit" class="text-note font-bold text-accent">適用</button></noscript
+				>
+			</form>
+		</div>
 	{/if}
 
 	<div class="pt-5">

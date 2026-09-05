@@ -141,7 +141,64 @@ describe('listProducts の並び', () => {
 		await seed({ name: '未定', price: null });
 		await seed({ name: '安い', price: 200 });
 
-		expect(await names({ yearMonths: [], sort: 'price' })).toEqual(['安い', '高い', '未定']);
+		expect(await names({ yearMonths: [], sort: 'price-asc' })).toEqual(['安い', '高い', '未定']);
+	});
+
+	it('価格の高い順でも価格未定が最後', async () => {
+		await seed({ name: '高い', price: 500 });
+		await seed({ name: '未定', price: null });
+		await seed({ name: '安い', price: 200 });
+
+		expect(await names({ yearMonths: [], sort: 'price-desc' })).toEqual(['高い', '安い', '未定']);
+	});
+
+	it('発売が新しい順は月をさかのぼる', async () => {
+		await seed({ name: '9月', yearMonth: '2026-09' });
+		await seed({ name: '11月', yearMonth: '2026-11' });
+		await seed({ name: '10月', yearMonth: '2026-10' });
+
+		expect(await names({ yearMonths: [], sort: 'release-desc' })).toEqual(['11月', '10月', '9月']);
+	});
+
+	it('発売が新しい順では月の中も下旬から並ぶ', async () => {
+		await seed({ name: '下旬', precision: 'period', detail: 'late' });
+		await seed({ name: '月まで', precision: 'month' });
+		await seed({ name: '上旬', precision: 'period', detail: 'early' });
+
+		expect(await names({ yearMonths: ['2026-09'], sort: 'release-desc' })).toEqual([
+			'下旬',
+			'上旬',
+			'月まで'
+		]);
+	});
+
+	it('明示した並び順は、過去をさかのぼる表示の既定より優先する', async () => {
+		await seed({ name: '6月', yearMonth: '2026-06' });
+		await seed({ name: '7月', yearMonth: '2026-07' });
+
+		// untilYearMonth の既定は新しい順。古い順を選んだらそちらが勝つ
+		expect(await names({ yearMonths: [], untilYearMonth: '2026-07', sort: 'release-asc' })).toEqual(
+			['6月', '7月']
+		);
+	});
+
+	it('価格順は月をまたいで並べる', async () => {
+		await seed({ name: '9月の高い', yearMonth: '2026-09', price: 500 });
+		await seed({ name: '10月の安い', yearMonth: '2026-10', price: 200 });
+
+		// 月を先に見ると月の中だけの価格順になり、全体の高安が出ない
+		expect(await names({ yearMonths: [], sort: 'price-asc' })).toEqual(['10月の安い', '9月の高い']);
+	});
+
+	it('価格順は月で切らず、1つのまとまりで返す', async () => {
+		await seed({ name: 'A', yearMonth: '2026-09', price: 200 });
+		await seed({ name: 'B', yearMonth: '2026-10', price: 300 });
+		await seed({ name: 'C', yearMonth: '2026-11', price: 400 });
+
+		const { groups } = await listProducts(db, { yearMonths: [], sort: 'price-asc' });
+		expect(groups).toHaveLength(1);
+		expect(groups[0]?.heading).toBe('価格が安い順');
+		expect(groups[0]?.items).toHaveLength(3);
 	});
 });
 
