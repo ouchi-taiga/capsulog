@@ -57,6 +57,38 @@ export function releaseStatus(
 	return jst.getUTCDate() > segmentEndDay(precision, detail) ? '発売済み' : '今月発売';
 }
 
+/* 旬・週が今月の何日目から始まるか。発売の近さの判定に使う */
+function segmentStartDay(precision: string | null, detail: string | null): number {
+	if (precision === 'period' && detail) return { early: 1, mid: 11, late: 21 }[detail] ?? 1;
+	if (precision === 'week' && detail) return Number(detail.split('-')[1]);
+	return 1;
+}
+
+/**
+ * 一覧で目を引かせる印。「発売中」「まもなく」だけを返し、そうでなければ null
+ *
+ * 月までしか分からない商品には出さない。月内のいつかを断定できず、
+ * 出すと今月の全商品に付いて強弱にならない。
+ */
+export function releaseHighlight(
+	yearMonth: string | null,
+	precision: string | null,
+	detail: string | null
+): '発売中' | 'まもなく' | null {
+	if (!yearMonth || !detail) return null;
+	if (precision !== 'period' && precision !== 'week') return null;
+	const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+	const current = `${jst.getUTCFullYear()}-${String(jst.getUTCMonth() + 1).padStart(2, '0')}`;
+	if (yearMonth !== current) return null;
+
+	const today = jst.getUTCDate();
+	const start = segmentStartDay(precision, detail);
+	const end = segmentEndDay(precision, detail);
+	// 期間に入っていれば発売中。手前1週間はまもなく
+	if (today >= start && today <= end) return '発売中';
+	return start - today <= 7 && start > today ? 'まもなく' : null;
+}
+
 /** 今日から offsetMonths ヶ月後の 'YYYY-MM'。日本時間で数える */
 export function currentYearMonth(offsetMonths = 0): string {
 	const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);

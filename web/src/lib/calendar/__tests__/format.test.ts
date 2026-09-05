@@ -4,6 +4,7 @@ import {
 	formatDetail,
 	formatRelease,
 	formatYearMonth,
+	releaseHighlight,
 	releaseStatus
 } from '../format';
 
@@ -96,6 +97,56 @@ describe('releaseStatus', () => {
 	it('発売月不明は null', () => {
 		freezeToday();
 		expect(releaseStatus(null, null, null)).toBeNull();
+	});
+});
+
+describe('releaseHighlight', () => {
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
+	// 日本時間 2026-09-15 に固定する
+	function freezeToday() {
+		vi.useFakeTimers();
+		vi.setSystemTime(new Date('2026-09-15T03:00:00Z'));
+	}
+
+	it('今月以外は印を出さない', () => {
+		freezeToday();
+		expect(releaseHighlight('2026-08', 'month', null)).toBeNull();
+		expect(releaseHighlight('2026-10', 'month', null)).toBeNull();
+		expect(releaseHighlight(null, null, null)).toBeNull();
+	});
+
+	it('期間の中なら発売中', () => {
+		freezeToday();
+		// 15日は中旬(11〜20日)の中
+		expect(releaseHighlight('2026-09', 'period', 'mid')).toBe('発売中');
+		// 9/14週は 14〜20日
+		expect(releaseHighlight('2026-09', 'week', '09-14')).toBe('発売中');
+	});
+
+	it('月までしか分からないものには出さない', () => {
+		freezeToday();
+		// 月内のいつかを断定できない。出すと今月の全商品に付く
+		expect(releaseHighlight('2026-09', 'month', null)).toBeNull();
+		expect(releaseHighlight('2026-09', null, null)).toBeNull();
+	});
+
+	it('期間が過ぎていれば印を出さない', () => {
+		freezeToday();
+		expect(releaseHighlight('2026-09', 'period', 'early')).toBeNull();
+		expect(releaseHighlight('2026-09', 'week', '09-01')).toBeNull();
+	});
+
+	it('始まりの1週間前からまもなく', () => {
+		freezeToday();
+		// 下旬は21日から。あと6日
+		expect(releaseHighlight('2026-09', 'period', 'late')).toBe('まもなく');
+		// 9/22週は22日から。あと7日で境界
+		expect(releaseHighlight('2026-09', 'week', '09-22')).toBe('まもなく');
+		// 9/23週は23日から。8日先なので出さない
+		expect(releaseHighlight('2026-09', 'week', '09-23')).toBeNull();
 	});
 });
 

@@ -2,7 +2,7 @@
 	import { resolve } from '$app/paths';
 	import type { ProductListItem } from '../types';
 	import { capsuleColorAt } from '../capsule';
-	import { formatDetail, formatYearMonth } from '../format';
+	import { formatDetail, formatYearMonth, releaseHighlight } from '../format';
 	import CapsuleBullet from './CapsuleBullet.svelte';
 	import MakerTag from './MakerTag.svelte';
 
@@ -11,6 +11,7 @@
 		$props();
 
 	let detail = $derived(formatDetail(item.precision, item.detail));
+	let highlight = $derived(releaseHighlight(item.yearMonth, item.precision, item.detail));
 
 	/* 並べるカプセルの数。多い商品は溢れるため打ち切り、残りは数で見せる */
 	const SHOWN_CAPSULES = 8;
@@ -22,8 +23,23 @@
 	href={resolve('/products/[id]', { id: String(item.id) })}
 	class="pressable relative flex h-full flex-col overflow-hidden rounded-3xl bg-surface px-4 py-3.5 shadow-clay"
 >
-	<span class="deco absolute -top-3 -right-3 h-10 w-10 opacity-15" aria-hidden="true"></span>
-	<div><MakerTag code={item.makerCode} name={item.makerName} /></div>
+	<!-- z-0 で背面に送る。バッジと重なる位置にあるため、上に乗ると滲んで見える -->
+	<span class="deco absolute -top-3 -right-3 z-0 h-10 w-10 opacity-15" aria-hidden="true"></span>
+	<!-- メーカーは左、発売時期は右。役割で置き場所を分け、同じ形が隣り合わないようにする -->
+	<div class="relative z-10 flex items-center justify-between gap-2">
+		<MakerTag code={item.makerCode} name={item.makerName} />
+		{#if highlight}
+			<!-- 発売が近いものだけ。全件に付くと強弱にならない -->
+			<span
+				class={[
+					'rounded-full px-2.5 py-1 text-note leading-none font-bold text-on-accent',
+					highlight === '発売中' ? 'bg-accent' : 'bg-sub'
+				]}
+			>
+				{highlight}
+			</span>
+		{/if}
+	</div>
 	<!-- 常に2行分を確保してカードの高さを揃える。1列のときだけ上下中央に置く -->
 	<h3
 		class="mt-2 mb-1.5 min-h-[2lh] content-center text-body leading-relaxed font-bold sm:content-start"
