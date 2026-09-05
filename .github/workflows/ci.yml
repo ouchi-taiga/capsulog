@@ -1,0 +1,63 @@
+# main への push で検査し、通ったらデプロイする。
+# デプロイには リポジトリの secret CLOUDFLARE_API_TOKEN が要る。
+name: ci
+
+on:
+  push:
+    branches: [main]
+
+# 後から押した分を優先する。古いデプロイが後に着かないようにする
+concurrency:
+  group: ci
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm lint
+      - run: pnpm test:unit --run
+
+  batch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv run --group dev ruff check .
+      - run: uv run --group dev ruff format --check .
+
+  deploy:
+    needs: [web, batch]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      # コードより先にスキーマを合わせる。新しい列を読む画面が先に出ないようにする
+      - name: マイグレーション
+        run: pnpm exec wrangler d1 migrations apply capsulog --remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - name: デプロイ
+        run: pnpm deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
