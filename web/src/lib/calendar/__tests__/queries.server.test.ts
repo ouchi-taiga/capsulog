@@ -197,15 +197,24 @@ describe('listProducts の並び', () => {
 		expect(await names({ yearMonths: [], sort: 'price-asc' })).toEqual(['10月の安い', '9月の高い']);
 	});
 
-	it('価格順は月で切らず、1つのまとまりで返す', async () => {
+	it('価格順は月ではなく価格で切る', async () => {
 		await seed({ name: 'A', yearMonth: '2026-09', price: 200 });
 		await seed({ name: 'B', yearMonth: '2026-10', price: 300 });
-		await seed({ name: 'C', yearMonth: '2026-11', price: 400 });
+		await seed({ name: 'C', yearMonth: '2026-11', price: 300 });
 
 		const { groups } = await listProducts(db, { yearMonths: [], sort: 'price-asc' });
-		expect(groups).toHaveLength(1);
-		expect(groups[0]?.heading).toBe('価格が安い順');
-		expect(groups[0]?.items).toHaveLength(3);
+		expect(groups.map((group) => group.heading)).toEqual(['¥200', '¥300']);
+		// 見出しの件数は読み込めた分ではなく、その価格の総数
+		expect(groups.map((group) => group.count)).toEqual([1, 2]);
+		expect(groups[1]?.items).toHaveLength(2);
+	});
+
+	it('価格順で価格が無いものは価格不明にまとめる', async () => {
+		await seed({ name: 'A', price: 200 });
+		await seed({ name: 'B', price: null });
+
+		const { groups } = await listProducts(db, { yearMonths: [], sort: 'price-asc' });
+		expect(groups.map((group) => group.heading)).toEqual(['¥200', '価格不明']);
 	});
 });
 
@@ -346,8 +355,15 @@ describe('listYearCounts', () => {
 		await seed({ yearMonth: null });
 
 		expect(await listYearCounts(db, '2026-07')).toEqual([
-			{ year: '2024', count: 2 },
-			{ year: '2023', count: 1 }
+			{
+				year: '2024',
+				count: 2,
+				months: [
+					{ yearMonth: '2024-08', count: 1 },
+					{ yearMonth: '2024-03', count: 1 }
+				]
+			},
+			{ year: '2023', count: 1, months: [{ yearMonth: '2023-05', count: 1 }] }
 		]);
 	});
 
@@ -356,7 +372,9 @@ describe('listYearCounts', () => {
 		await seed({ yearMonth: '2026-08' });
 
 		// 境界の月は含める
-		expect(await listYearCounts(db, '2026-07')).toEqual([{ year: '2026', count: 1 }]);
+		expect(await listYearCounts(db, '2026-07')).toEqual([
+			{ year: '2026', count: 1, months: [{ yearMonth: '2026-07', count: 1 }] }
+		]);
 	});
 });
 
