@@ -116,15 +116,17 @@ body {
 }
 
 /* 重なって出る面。閉じた側の辺を起点に、縦に潰れた状態から伸びる。
-   伸びきる手前で少し行き過ぎて戻り、そこから出てきたように見せる */
-.select-pop[data-state='open'] {
-	/* 横は中央で固定する。左右に寄せると縮んだ側だけが動いて横揺れに見える */
+   伸びきる手前で少し行き過ぎて戻り、そこから出てきたように見せる。
+   起点は開くときと閉じるときで揃える。横は中央で固定し、横揺れを避ける */
+.select-pop {
 	transform-origin: center top;
-	animation: pop-out var(--duration-open) var(--ease-bounce);
 }
 /* 上に出るときは下辺から伸ばす。トリガーのある側が起点になる */
-.select-pop[data-state='open'][data-side='top'] {
+.select-pop[data-side='top'] {
 	transform-origin: center bottom;
+}
+.select-pop[data-state='open'] {
+	animation: pop-out var(--duration-open) var(--ease-bounce);
 }
 @keyframes pop-out {
 	from {
@@ -133,8 +135,19 @@ body {
 		opacity: 0;
 	}
 }
+/* 閉じるときは開きの逆。弾ませず、起点の辺へ畳みきる */
+.select-pop[data-ending-style] {
+	animation: pop-in var(--duration-press) ease-in forwards;
+}
+@keyframes pop-in {
+	to {
+		transform: scaleY(0);
+		opacity: 0;
+	}
+}
 @media (prefers-reduced-motion: reduce) {
-	.select-pop[data-state='open'] {
+	.select-pop[data-state='open'],
+	.select-pop[data-ending-style] {
 		animation: none;
 	}
 }
@@ -154,6 +167,15 @@ body {
 		transform: translateY(100%);
 	}
 }
+/* 閉じるときは弾ませずに下へ帰す。行き過ぎると画面外の見えない所で跳ねる */
+.sheet-up[data-ending-style] {
+	animation: sheet-fall var(--duration-open) ease-in forwards;
+}
+@keyframes sheet-fall {
+	to {
+		transform: translateY(100%);
+	}
+}
 .sheet-veil[data-state='open'] {
 	animation: veil-in var(--duration-open) ease;
 }
@@ -162,9 +184,19 @@ body {
 		opacity: 0;
 	}
 }
+.sheet-veil[data-ending-style] {
+	animation: veil-out var(--duration-open) ease forwards;
+}
+@keyframes veil-out {
+	to {
+		opacity: 0;
+	}
+}
 @media (prefers-reduced-motion: reduce) {
 	.sheet-up[data-state='open'],
-	.sheet-veil[data-state='open'] {
+	.sheet-veil[data-state='open'],
+	.sheet-up[data-ending-style],
+	.sheet-veil[data-ending-style] {
 		animation: none;
 	}
 }
