@@ -12,6 +12,8 @@
 		portalProps,
 		children,
 		showCloseButton = true,
+		// 背面のスクロールを止めない。止めるとスクロールバーが消え、その幅だけ中身が横にずれる
+		preventScroll = false,
 		...restProps
 	}: WithoutChildrenOrChild<DialogPrimitive.ContentProps> & {
 		portalProps?: WithoutChildrenOrChild<ComponentProps<typeof DialogPortal>>;
@@ -25,6 +27,7 @@
 	<!-- 下から出るシート。スマホでの利用が主で、画面下は指が届く -->
 	<DialogPrimitive.Content
 		bind:ref
+		{preventScroll}
 		data-slot="dialog-content"
 		class={cn(
 			'sheet-up fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[75dvh] max-w-2xl flex-col gap-4 overflow-y-auto rounded-t-3xl bg-surface p-5 text-ink outline-none',
