@@ -6,7 +6,7 @@
 	import * as Popover from '$lib/common/components/ui/popover';
 	import * as Select from '$lib/common/components/ui/select';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
-	import { formatYearMonth } from '$lib/calendar/format';
+	import { formatYearMonth, shiftYearMonth } from '$lib/calendar/format';
 	import FlipText from '$lib/common/components/FlipText.svelte';
 	import FlipNumber from '$lib/common/components/FlipNumber.svelte';
 	import EmptyState from '$lib/calendar/components/EmptyState.svelte';
@@ -38,16 +38,16 @@
 
 	// 選んでいる年。'YYYY' でなければ null
 	let selectedYear = $derived(/^\d{4}$/.test(data.filters.month ?? '') ? data.filters.month : null);
-	// 年の一覧から辿り着ける範囲。先々月以前の月を選んでいるかどうか
-	let selectedPastMonth = $derived(
-		/^\d{4}-\d{2}$/.test(data.filters.month ?? '') &&
-			(data.filters.month ?? '') < data.previousYearMonth
-			? data.filters.month
-			: null
+	// 1つの月を選んでいるか。年の一覧はどの月にも通じているので、月の新旧では分けない
+	let selectedMonth = $derived(
+		/^\d{4}-\d{2}$/.test(data.filters.month ?? '') ? data.filters.month : null
 	);
-	// 年を選んでいる間も、過去を辿っている状態には変わりない
+	// 年を選んでいる間も、過去を辿っている状態には変わりない。
+	// 先々月以前の月は年の一覧から来ているので、過去への入口を重ねて出さない
 	let viewingPast = $derived(
-		data.filters.month === 'earlier' || selectedYear !== null || selectedPastMonth !== null
+		data.filters.month === 'earlier' ||
+			selectedYear !== null ||
+			(selectedMonth !== null && selectedMonth < data.previousYearMonth)
 	);
 
 	// 時系列順に並べ、既定の「今月・来月」を先月と今月の間に挟む
@@ -231,6 +231,29 @@
 	);
 
 	/*
+	 * 前後の月への移動。1つの月を見ているときだけ出す。
+	 * 「今月・来月」のような範囲では、どちらへ動かすかが決められない。
+	 */
+	let monthSteps = $derived.by(() => {
+		const month = data.filters.month;
+		if (!month || !/^\d{4}-\d{2}$/.test(month)) return null;
+		const step = (offset: number) => {
+			const target = shiftYearMonth(month, offset);
+			return {
+				year: target.slice(0, 4),
+				month: String(Number(target.slice(5))),
+				href: link('month', target)
+			};
+		};
+		return {
+			previous: step(-1),
+			next: step(1),
+			// 今月を見ているときは出さない。行き先が今と同じになる
+			home: month === data.thisYearMonth ? null : link('month', data.thisYearMonth)
+		};
+	});
+
+	/*
 	 * 過去への入口。既定では今月と来月しか出ないので、それ以前があることが分からない。
 	 * 過去を見ている間と、検索や絞り込みの結果を見ている間は出さない。条件から外れて見えるため。
 	 */
@@ -404,6 +427,44 @@
 	</div>
 </div>
 
+{#snippet monthNav(steps: {
+	previous: { year: string; month: string; href: string };
+	next: { year: string; month: string; href: string };
+	home: string | null;
+})}
+	<!-- eslint-disable svelte/no-navigation-without-resolve -->
+	<!-- 月をめくる。年のカードと同じく、月の数字を主役にする -->
+	<nav class="flex items-stretch gap-2" aria-label="前後の月">
+		<a
+			href={steps.previous.href}
+			class="pressable flex flex-1 items-baseline gap-1 rounded-2xl bg-surface px-4 py-3 shadow-clay-sm"
+		>
+			<span class="text-note font-bold text-faint">←</span>
+			<span class="ml-1 text-note font-bold text-faint tabular-nums">{steps.previous.year}</span>
+			<span class="text-heading font-extrabold tabular-nums">{steps.previous.month}</span>
+			<span class="text-body font-bold">月</span>
+		</a>
+		{#if steps.home}
+			<a
+				href={steps.home}
+				class="pressable grid place-items-center rounded-2xl bg-surface px-4 shadow-clay-sm"
+			>
+				<span class="text-note font-bold whitespace-nowrap text-accent">今月へ</span>
+			</a>
+		{/if}
+		<a
+			href={steps.next.href}
+			class="pressable flex flex-1 items-baseline justify-end gap-1 rounded-2xl bg-surface px-4 py-3 shadow-clay-sm"
+		>
+			<span class="text-note font-bold text-faint tabular-nums">{steps.next.year}</span>
+			<span class="text-heading font-extrabold tabular-nums">{steps.next.month}</span>
+			<span class="text-body font-bold">月</span>
+			<span class="ml-1 text-note font-bold text-faint">→</span>
+		</a>
+	</nav>
+	<!-- eslint-enable svelte/no-navigation-without-resolve -->
+{/snippet}
+
 <main class="mx-auto max-w-2xl px-4 pb-16 lg:max-w-5xl">
 	{#if applied.length > 0}
 		<div class="flex flex-wrap gap-2 pt-3" aria-label="選択中の条件">
@@ -418,7 +479,7 @@
 		</div>
 	{/if}
 
-	{#if selectedYear || selectedPastMonth}
+	{#if selectedYear || selectedMonth}
 		<p class="pt-3">
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href={link('month', 'earlier')} class="text-body font-bold text-accent">← 年の一覧へ</a>
@@ -432,6 +493,10 @@
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href={link('q', null)} class="ml-2 font-bold text-accent">解除</a>
 		</p>
+	{/if}
+
+	{#if monthSteps}
+		<div class="pt-3">{@render monthNav(monthSteps)}</div>
 	{/if}
 
 	{#if groups.length > 0}
@@ -553,6 +618,9 @@
 						{loading ? '読み込み中…' : 'さらに表示'}
 					</button>
 				</div>
+			{/if}
+			{#if monthSteps && !data.hasMore}
+				<div class="pt-8">{@render monthNav(monthSteps)}</div>
 			{/if}
 			{#if pastEntry && !data.hasMore}
 				<!-- 読み終えた先に置く。ここまで来た人は、次に見るものを探している -->

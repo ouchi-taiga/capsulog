@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
 	currentYearMonth,
+	shiftYearMonth,
 	formatDetail,
 	formatRelease,
 	formatYearMonth,
@@ -167,5 +168,22 @@ describe('currentYearMonth', () => {
 		vi.setSystemTime(new Date('2026-11-15T00:00:00Z'));
 		expect(currentYearMonth(1)).toBe('2026-12');
 		expect(currentYearMonth(2)).toBe('2027-01');
+	});
+});
+
+describe('shiftYearMonth', () => {
+	it('前後にずらす', () => {
+		expect(shiftYearMonth('2026-09', 1)).toBe('2026-10');
+		expect(shiftYearMonth('2026-09', -1)).toBe('2026-08');
+	});
+
+	it('年をまたぐ', () => {
+		expect(shiftYearMonth('2026-12', 1)).toBe('2027-01');
+		expect(shiftYearMonth('2026-01', -1)).toBe('2025-12');
+	});
+
+	it('1年以上ずらせる', () => {
+		expect(shiftYearMonth('2026-05', 14)).toBe('2027-07');
+		expect(shiftYearMonth('2026-05', -17)).toBe('2024-12');
 	});
 });

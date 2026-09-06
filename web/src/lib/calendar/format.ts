@@ -92,7 +92,18 @@ export function releaseHighlight(
 /** 今日から offsetMonths ヶ月後の 'YYYY-MM'。日本時間で数える */
 export function currentYearMonth(offsetMonths = 0): string {
 	const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);
-	const total = jst.getUTCFullYear() * 12 + jst.getUTCMonth() + offsetMonths;
+	return fromMonthCount(jst.getUTCFullYear() * 12 + jst.getUTCMonth() + offsetMonths);
+}
+
+/** 'YYYY-MM' を前後にずらす。年をまたぐ計算はここに閉じる */
+export function shiftYearMonth(yearMonth: string, offsetMonths: number): string {
+	const year = Number(yearMonth.slice(0, 4));
+	const month = Number(yearMonth.slice(5, 7));
+	return fromMonthCount(year * 12 + (month - 1) + offsetMonths);
+}
+
+/** 西暦0年1月からの月数を 'YYYY-MM' に戻す */
+function fromMonthCount(total: number): string {
 	const year = Math.floor(total / 12);
 	const month = (total % 12) + 1;
 	return `${year}-${String(month).padStart(2, '0')}`;
