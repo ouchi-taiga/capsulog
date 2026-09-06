@@ -5,6 +5,9 @@
 	import SectionHeading from '$lib/common/components/SectionHeading.svelte';
 
 	let { group }: { group: MonthGroup } = $props();
+
+	/* 遅らせるのは 8 枚目まで。以降は同じ待ち時間で揃え、順番が入れ替わらないようにする */
+	const REVEAL_STAGGER = 8;
 </script>
 
 <section class="pt-2">
@@ -15,8 +18,11 @@
 		<MonthHeading yearMonth={group.yearMonth} count={group.count ?? group.items.length} />
 	{/if}
 	<ul class="flex flex-col gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3">
-		{#each group.items as item (item.id)}
-			<li><ProductCard {item} showYearMonth={group.heading !== undefined} /></li>
+		{#each group.items as item, index (item.id)}
+			<!-- 生まれた瞬間に一度だけ動く。続きを読んで増えた分にも同じように効く -->
+			<li class="reveal" style="animation-delay: {Math.min(index, REVEAL_STAGGER) * 60}ms">
+				<ProductCard {item} showYearMonth={group.heading !== undefined} />
+			</li>
 		{/each}
 	</ul>
 </section>

@@ -137,6 +137,23 @@ body {
 	}
 }
 
+/* 現れたものが下から弾んで出る。
+   要素が生まれた瞬間に一度だけ走るので、続きを読んで増えた分にだけ効く */
+.reveal {
+	animation: reveal-rise var(--duration-large) var(--ease-bounce) backwards;
+}
+@keyframes reveal-rise {
+	from {
+		opacity: 0;
+		transform: translateY(22px) scale(0.97);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.reveal {
+		animation: none;
+	}
+}
+
 /* メンフィスの装飾。置く場所はヘッダ・見出し・カードの隅に限る */
 .deco-dots {
 	background-image: radial-gradient(var(--dot) 1.8px, transparent 1.8px);

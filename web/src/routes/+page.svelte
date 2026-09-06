@@ -106,9 +106,10 @@
 	 * 画面に出している一覧。load の結果をそのまま描かず、ここに貯める。
 	 * 一覧ごと取り直すと、既にある商品まで作り直されて画面が一度消えてしまう。
 	 */
-	let groups = $state<MonthGroupData[]>([]);
-	let nextOffset = $state(0);
-	let hasMore = $state(false);
+	// 初期値は load の結果。空から始めると、一瞬「商品がありません」が出る
+	let groups = $state<MonthGroupData[]>(untrack(() => data.groups));
+	let nextOffset = $state(untrack(() => data.nextOffset));
+	let hasMore = $state(untrack(() => data.hasMore));
 
 	/* 月の箱を保ったまま後ろに繋ぐ。境目が同じ月なら1つにまとめる */
 	function append(base: MonthGroupData[], incoming: MonthGroupData[]): MonthGroupData[] {
