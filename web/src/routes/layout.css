@@ -201,6 +201,38 @@ body {
 	}
 }
 
+/* トリガーから伸びて出る面。パネルがトリガーより広いとき、真下に伸ばすと
+   出どころが分からない。押した角を起点にして、そこから斜めに広がるようにする。
+   起点は bits-ui が算出した値をそのまま使う */
+.anchor-pop[data-state='open'] {
+	transform-origin: var(--bits-floating-transform-origin);
+	animation: anchor-out var(--duration-open) var(--ease-bounce);
+}
+@keyframes anchor-out {
+	from {
+		/* 大きく縮めるほど広がる距離が伸び、弾みも大きく出る。少し縮める程度に留める */
+		transform: scale(0.75);
+		opacity: 0;
+	}
+}
+/* 閉じるときは開きの逆。弾ませず、起点の角へ畳みきる */
+.anchor-pop[data-ending-style] {
+	transform-origin: var(--bits-floating-transform-origin);
+	animation: anchor-in var(--duration-press) ease-in forwards;
+}
+@keyframes anchor-in {
+	to {
+		transform: scale(0);
+		opacity: 0;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.anchor-pop[data-state='open'],
+	.anchor-pop[data-ending-style] {
+		animation: none;
+	}
+}
+
 /* 現れたものが下から弾んで出る。
    要素が生まれた瞬間に一度だけ走るので、続きを読んで増えた分にだけ効く */
 .reveal {

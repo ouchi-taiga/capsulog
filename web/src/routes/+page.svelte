@@ -3,7 +3,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import * as Dialog from '$lib/common/components/ui/dialog';
+	import * as Popover from '$lib/common/components/ui/popover';
 	import * as Select from '$lib/common/components/ui/select';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { formatYearMonth } from '$lib/calendar/format';
@@ -311,67 +311,68 @@
 					class="w-full rounded-full bg-surface px-5 py-2 text-input shadow-clay-on-color outline-none placeholder:text-faint focus:ring-2 focus:ring-white"
 				/>
 			</form>
-			<button
-				type="button"
-				onclick={() => (filtersOpen = !filtersOpen)}
-				aria-expanded={filtersOpen}
-				aria-label="絞り込み"
-				class={[
-					'pressable relative grid h-10 w-10 flex-none place-items-center rounded-full',
-					filtersOpen ? 'bg-ink text-white shadow-clay-pressed' : 'bg-surface shadow-clay-on-color'
-				]}
-			>
-				<!-- スライダーのアイコン -->
-				<svg
-					width="18"
-					height="18"
-					viewBox="0 0 18 18"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-					aria-hidden="true"
+			<!-- 絞り込みは並び替えと同じ扱いにする。押した場所から開き、外を触れば閉じる -->
+			<Popover.Root bind:open={filtersOpen}>
+				<Popover.Trigger
+					aria-label="絞り込み"
+					class={[
+						'pressable relative grid h-10 w-10 flex-none place-items-center rounded-full',
+						filtersOpen
+							? 'bg-ink text-white shadow-clay-pressed'
+							: 'bg-surface shadow-clay-on-color'
+					]}
 				>
-					<path d="M2 5h14M2 13h14" />
-					<circle cx="7" cy="5" r="2.2" fill="var(--surface)" />
-					<circle cx="12" cy="13" r="2.2" fill="var(--surface)" />
-				</svg>
-				{#if applied.length > 0 && !filtersOpen}
-					<span class="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-ink" aria-hidden="true"
-					></span>
-				{/if}
-			</button>
+					<!-- スライダーのアイコン -->
+					<svg
+						width="18"
+						height="18"
+						viewBox="0 0 18 18"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						aria-hidden="true"
+					>
+						<path d="M2 5h14M2 13h14" />
+						<circle cx="7" cy="5" r="2.2" fill="var(--surface)" />
+						<circle cx="12" cy="13" r="2.2" fill="var(--surface)" />
+					</svg>
+					{#if applied.length > 0 && !filtersOpen}
+						<span
+							class="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-ink"
+							aria-hidden="true"
+						></span>
+					{/if}
+				</Popover.Trigger>
+				<Popover.Content>
+					<p class="text-heading font-extrabold">絞り込み</p>
+					{#each [['発売月', monthChips], ['メーカー', makerChips], ['価格', priceChips]] as const as [label, chips] (label)}
+						<div>
+							<p class="pb-2 text-note font-bold text-faint">{label}</p>
+							<div class="flex flex-wrap gap-2">
+								{#each chips as chip (chip.label)}
+									<a
+										href={chip.href}
+										class={[
+											'pressable rounded-full px-3.5 py-1.5 text-note font-bold whitespace-nowrap',
+											chip.on
+												? 'bg-accent text-on-accent shadow-clay-pressed'
+												: 'bg-ground text-faint shadow-clay-sm'
+										]}
+									>
+										{chip.label}
+									</a>
+								{/each}
+							</div>
+						</div>
+					{/each}
+				</Popover.Content>
+			</Popover.Root>
 		</div>
 	</div>
 </div>
 
 <main class="mx-auto max-w-2xl px-4 pb-16 lg:max-w-5xl">
-	<Dialog.Root bind:open={filtersOpen}>
-		<Dialog.Content>
-			<Dialog.Title>絞り込み</Dialog.Title>
-			{#each [['発売月', monthChips], ['メーカー', makerChips], ['価格', priceChips]] as const as [label, chips] (label)}
-				<div>
-					<p class="pb-2 text-note font-bold text-faint">{label}</p>
-					<div class="flex flex-wrap gap-2">
-						{#each chips as chip (chip.label)}
-							<a
-								href={chip.href}
-								class={[
-									'pressable rounded-full px-3.5 py-1.5 text-note font-bold whitespace-nowrap',
-									chip.on
-										? 'bg-accent text-on-accent shadow-clay-pressed'
-										: 'bg-ground text-faint shadow-clay-sm'
-								]}
-							>
-								{chip.label}
-							</a>
-						{/each}
-					</div>
-				</div>
-			{/each}
-		</Dialog.Content>
-	</Dialog.Root>
-
 	{#if applied.length > 0}
 		<div class="flex flex-wrap gap-2 pt-3" aria-label="選択中の条件">
 			{#each applied as chip (chip.label)}
