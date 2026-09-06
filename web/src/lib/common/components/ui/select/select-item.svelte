@@ -18,7 +18,7 @@
 	{value}
 	data-slot="select-item"
 	class={cn(
-		'relative flex w-full cursor-default items-center gap-2 rounded-full py-2 pr-8 pl-3.5 text-note font-bold outline-hidden select-none',
+		'relative flex w-full cursor-default items-center gap-2 rounded-full py-2 pr-8 pl-3.5 text-body font-bold outline-hidden select-none',
 		// 選択中とキーボードの当たっている項目。チップの選択中と同じ見た目に揃える
 		// 触れている項目は主色を薄く敷く。地色に近い色だと面と見分けが付かない
 		'data-highlighted:bg-accent/12 data-highlighted:text-accent',

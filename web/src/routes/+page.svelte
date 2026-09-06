@@ -403,8 +403,7 @@
 	{/if}
 
 	{#if groups.length > 0}
-		<div class="flex items-center justify-end gap-2 pt-3">
-			<span class="text-note font-bold text-faint" id="sort-label">並び替え</span>
+		<div class="flex justify-end pt-3">
 			<Select.Root
 				type="single"
 				value={data.activeSort}
@@ -412,7 +411,7 @@
 				bind:open={sortOpen}
 			>
 				<!-- 選ぶ語で幅が動かないよう、開いたときのパネルと同じ幅に固定する -->
-				<Select.Trigger aria-labelledby="sort-label" class="w-40">
+				<Select.Trigger aria-label="並び替え" class="w-40">
 					<FlipText value={SORT_LABELS[data.activeSort]} />
 				</Select.Trigger>
 				<Select.Content align="end" sideOffset={8}>
