@@ -23,8 +23,10 @@ export type ListFilters = {
 	keyword?: string;
 	/** 並び順。省略時は月の絞り込みに合わせて向きを決める */
 	sort?: Sort;
-	/** 先頭から何件返すか。スクロールで続きを読むたびに増える */
+	/** 何件返すか */
 	limit?: number;
+	/** 何件目から返すか。続きだけを取るときに使う */
+	offset?: number;
 };
 
 export type Sort = 'release-asc' | 'release-desc' | 'price-asc' | 'price-desc';
@@ -36,7 +38,7 @@ export type Sort = 'release-asc' | 'release-desc' | 'price-asc' | 'price-desc';
  */
 export const PAGE_SIZE = 60;
 
-/* 読み進められる上限。URL を書き換えて極端な値を渡されても、D1 を1回で酷使させない */
+/* 読み進められる上限。URL に極端な limit や offset を渡されても、D1 を酷使させない */
 export const MAX_LIMIT = 1200;
 
 const SELECT_ITEM = `
@@ -129,12 +131,12 @@ export async function listProducts(
 	const sql = `${SELECT_ITEM}
 		${where.length ? 'WHERE ' + where.join(' AND ') : ''}
 		ORDER BY p.release_year_month IS NULL, ${order}, p.id
-		LIMIT ?`;
+		LIMIT ? OFFSET ?`;
 
 	const limit = filters.limit ?? PAGE_SIZE;
 	const { results } = await db
 		.prepare(sql)
-		.bind(...binds, limit + 1)
+		.bind(...binds, limit + 1, filters.offset ?? 0)
 		.all<ProductListItem>();
 
 	const hasMore = results.length > limit;

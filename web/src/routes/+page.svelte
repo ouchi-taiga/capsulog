@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -9,6 +10,7 @@
 	import FlipText from '$lib/common/components/FlipText.svelte';
 	import EmptyState from '$lib/calendar/components/EmptyState.svelte';
 	import MonthGroup from '$lib/calendar/components/MonthGroup.svelte';
+	import type { MonthGroup as MonthGroupData } from '$lib/calendar/types';
 
 	let { data } = $props();
 
@@ -20,7 +22,7 @@
 		if (value === null) params.delete(key);
 		else params.set(key, value);
 		// 条件が変われば読み進めた分は無効になる。1ページ目から見せ直す
-		if (key !== 'limit') params.delete('limit');
+		if (key !== 'offset') params.delete('offset');
 		const query = params.toString();
 		return query ? `?${query}` : resolve('/');
 	}
@@ -100,18 +102,60 @@
 	let loading = $state(false);
 	let moreButton = $state<HTMLButtonElement | null>(null);
 
-	/** 続きを読む。limit を増やして load をやり直させる */
+	/*
+	 * 画面に出している一覧。load の結果をそのまま描かず、ここに貯める。
+	 * 一覧ごと取り直すと、既にある商品まで作り直されて画面が一度消えてしまう。
+	 */
+	let groups = $state<MonthGroupData[]>([]);
+	let nextOffset = $state(0);
+	let hasMore = $state(false);
+
+	/* 月の箱を保ったまま後ろに繋ぐ。境目が同じ月なら1つにまとめる */
+	function append(base: MonthGroupData[], incoming: MonthGroupData[]): MonthGroupData[] {
+		const merged = base.map((group) => ({ ...group, items: [...group.items] }));
+		for (const group of incoming) {
+			const last = merged.at(-1);
+			if (last && last.yearMonth === group.yearMonth && last.heading === group.heading) {
+				last.items.push(...group.items);
+			} else {
+				merged.push({ ...group, items: [...group.items] });
+			}
+		}
+		return merged;
+	}
+
+	/*
+	 * load がやり直されるたびに走る。
+	 * offset があれば続きなので後ろへ足し、無ければ条件が変わったので置き換える。
+	 */
+	$effect(() => {
+		const incoming = data.groups;
+		const isMore = data.offset > 0;
+		// groups を読むと依存に入って更新が止まる。前の値は untrack して取る
+		groups = isMore
+			? append(
+					untrack(() => groups),
+					incoming
+				)
+			: incoming;
+		nextOffset = data.nextOffset;
+		hasMore = data.hasMore;
+	});
+
+	/** 続きを読む。今ある一覧はそのままに、次の分だけ取りに行く */
 	async function loadMore() {
-		if (loading || !data.hasMore) return;
+		if (loading || !hasMore) return;
 		loading = true;
-		// 積んだ分を消さずに増やすため、履歴を汚さず今の位置も保つ
+		// 履歴を汚さず、今の位置も保つ
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
-		await goto(link('limit', String(data.nextLimit)), {
+		await goto(link('offset', String(nextOffset)), {
 			replaceState: true,
 			noScroll: true,
 			keepFocus: true
 		});
 		loading = false;
+		// offset は読み進めるための一時の値。共有された URL では 1 ページ目から見せる
+		history.replaceState(history.state, '', link('offset', null));
 	}
 
 	// 下端が見えたら自動で読む。ボタンは JS が動かないときと、自動が届かないときの受け皿
@@ -355,7 +399,7 @@
 		</p>
 	{/if}
 
-	{#if data.groups.length > 0}
+	{#if groups.length > 0}
 		<div class="flex items-center justify-end gap-2 pt-3">
 			<span class="text-note font-bold text-faint" id="sort-label">並び替え</span>
 			<Select.Root
@@ -395,11 +439,11 @@
 					</li>
 				{/each}
 			</ul>
-		{:else if data.groups.length === 0}
+		{:else if groups.length === 0}
 			<EmptyState title={empty.title} hint={empty.hint} action={empty.action} />
 		{:else}
 			<div class="flex flex-col gap-6">
-				{#each data.groups as group (group.yearMonth ?? 'unknown')}
+				{#each groups as group (group.yearMonth ?? 'unknown')}
 					<MonthGroup {group} />
 				{/each}
 			</div>

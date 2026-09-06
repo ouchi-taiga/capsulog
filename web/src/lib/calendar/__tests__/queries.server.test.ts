@@ -311,19 +311,30 @@ describe('listProducts のページング', () => {
 		expect(groups[0]?.count).toBe(1);
 	});
 
-	it('limit を増やすと、前に見えていた分がそのまま先頭に残る', async () => {
-		await seedMany(5);
+	it('offset で続きを取ると、重複も取りこぼしも出ない', async () => {
+		await seedMany(7);
 
-		const ids = async (limit: number) =>
-			(await listProducts(db, { yearMonths: [], limit })).groups.flatMap((group) =>
+		const ids = async (offset: number) =>
+			(await listProducts(db, { yearMonths: [], limit: 3, offset })).groups.flatMap((group) =>
 				group.items.map((item) => item.id)
 			);
 
-		const first = await ids(3);
-		const second = await ids(6);
-		// 並びが揺れると、読み進めたときに取りこぼしや重複が出る
-		expect(second.slice(0, 3)).toEqual(first);
-		expect(new Set(second).size).toBe(second.length);
+		const page1 = await ids(0);
+		const page2 = await ids(3);
+		const page3 = await ids(6);
+		const all = [...page1, ...page2, ...page3];
+
+		// 並びが揺れると、読み進めたときに同じ商品が二度出たり抜けたりする
+		expect(all).toHaveLength(7);
+		expect(new Set(all).size).toBe(7);
+	});
+
+	it('offset が全体を超えたら空で返す', async () => {
+		await seedMany(3);
+
+		const result = await listProducts(db, { yearMonths: [], limit: 3, offset: 10 });
+		expect(result.total).toBe(0);
+		expect(result.hasMore).toBe(false);
 	});
 });
 

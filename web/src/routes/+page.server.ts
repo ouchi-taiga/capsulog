@@ -21,9 +21,21 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 	const priceBand = url.searchParams.get('price') ?? undefined;
 	const keyword = url.searchParams.get('q')?.trim() || undefined;
 
-	// 表示する件数。スクロールで続きを読むたびに増える。負や小数は 1 ページ目に倒す
+	/*
+	 * offset があれば続きだけを返す。画面はそれを今ある一覧の後ろに足す。
+	 * offset が無いときは limit までをまとめて返す。共有された URL を開いた場合がこれ。
+	 */
+	// 上限を設ける。URL を書き換えて極端な値を渡されても、D1 を無駄に走らせない
+	const offset = Math.min(
+		MAX_LIMIT,
+		Math.max(0, Math.trunc(Number(url.searchParams.get('offset')) || 0))
+	);
 	const requestedLimit = Math.trunc(Number(url.searchParams.get('limit')) || 0);
-	const limit = requestedLimit >= PAGE_SIZE ? Math.min(requestedLimit, MAX_LIMIT) : PAGE_SIZE;
+	const limit = offset
+		? PAGE_SIZE
+		: requestedLimit >= PAGE_SIZE
+			? Math.min(requestedLimit, MAX_LIMIT)
+			: PAGE_SIZE;
 
 	const SORTS: Sort[] = ['release-asc', 'release-desc', 'price-asc', 'price-desc'];
 	const requested = SORTS.find((value) => value === url.searchParams.get('sort'));
@@ -59,7 +71,8 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 			priceBand === '300' || priceBand === '400' || priceBand === '500' ? priceBand : undefined,
 		keyword,
 		sort,
-		limit
+		limit,
+		offset
 	};
 
 	const [makers, list, counts, years] = await Promise.all([
@@ -72,8 +85,9 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 		makers,
 		counts,
 		years,
-		// 次に読む件数。画面はこれを URL に載せて続きを求める
-		nextLimit: limit + PAGE_SIZE,
+		// いま返した分の次がどこから始まるか。画面はこれを載せて続きを求める
+		offset,
+		nextOffset: offset + limit,
 		...list,
 		previousYearMonth: currentYearMonth(-1),
 		thisYearMonth: currentYearMonth(0),
