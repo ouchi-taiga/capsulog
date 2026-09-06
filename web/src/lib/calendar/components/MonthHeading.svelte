@@ -24,7 +24,8 @@
 	);
 </script>
 
-<h2 class="flex flex-wrap items-center gap-x-2.5 gap-y-2 px-1 pb-3">
+<!-- 文字は下の線で揃える。箱の中央で揃えると、大きさの違う語が上下にずれて見える -->
+<h2 class="flex flex-wrap items-baseline gap-x-2.5 gap-y-2 px-1 pb-3">
 	{#if month === null}
 		<span class="text-title font-extrabold text-faint">発売月不明</span>
 	{:else}
