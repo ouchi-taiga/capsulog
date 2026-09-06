@@ -11,6 +11,7 @@
 	import FlipNumber from '$lib/common/components/FlipNumber.svelte';
 	import EmptyState from '$lib/calendar/components/EmptyState.svelte';
 	import MonthGroup from '$lib/calendar/components/MonthGroup.svelte';
+	import MonthHeading from '$lib/calendar/components/MonthHeading.svelte';
 	import type { MonthGroup as MonthGroupData } from '$lib/calendar/types';
 
 	let { data } = $props();
@@ -450,39 +451,36 @@
 		</p>
 	{/if}
 
-	{#if groups.length > 0}
-		<div class="flex items-center justify-between gap-2 pt-3">
-			{#if pastEntry}
-				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-				<a href={pastEntry.href} class="text-note font-bold text-faint hover:text-accent">
-					過去の商品を探す ({pastEntry.count.toLocaleString('ja-JP')}件) →
-				</a>
-			{:else if selectedYear || selectedMonth}
-				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-				<a href={link('month', 'earlier')} class="text-note font-bold text-accent">
-					← 年の一覧へ
-				</a>
-			{:else}
-				<span></span>
-			{/if}
-			<Select.Root
-				type="single"
-				value={data.activeSort}
-				onValueChange={selectSort}
-				bind:open={sortOpen}
-			>
-				<!-- 選ぶ語で幅が動かないよう、開いたときのパネルと同じ幅に固定する -->
-				<Select.Trigger aria-label="並び替え" class="w-40">
-					<FlipText value={SORT_LABELS[data.activeSort]} />
-				</Select.Trigger>
-				<Select.Content align="end" sideOffset={8}>
-					{#each Object.entries(SORT_LABELS) as [value, label] (value)}
-						<Select.Item {value} {label} />
-					{/each}
-				</Select.Content>
-			</Select.Root>
-		</div>
-	{/if}
+	<!-- 商品が無い月でも並びは変えられる。出し入れすると月を送るたびにちらつく -->
+	<div class="flex items-center justify-between gap-2 pt-3">
+		{#if pastEntry}
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+			<a href={pastEntry.href} class="text-note font-bold text-faint hover:text-accent">
+				過去の商品を探す ({pastEntry.count.toLocaleString('ja-JP')}件) →
+			</a>
+		{:else if selectedYear || selectedMonth}
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+			<a href={link('month', 'earlier')} class="text-note font-bold text-accent"> ← 年の一覧へ </a>
+		{:else}
+			<span></span>
+		{/if}
+		<Select.Root
+			type="single"
+			value={data.activeSort}
+			onValueChange={selectSort}
+			bind:open={sortOpen}
+		>
+			<!-- 選ぶ語で幅が動かないよう、開いたときのパネルと同じ幅に固定する -->
+			<Select.Trigger aria-label="並び替え" class="w-40">
+				<FlipText value={SORT_LABELS[data.activeSort]} />
+			</Select.Trigger>
+			<Select.Content align="end" sideOffset={8}>
+				{#each Object.entries(SORT_LABELS) as [value, label] (value)}
+					<Select.Item {value} {label} />
+				{/each}
+			</Select.Content>
+		</Select.Root>
+	</div>
 
 	<!-- 並び替えを開いている間は触れないようにする。閉じる指が下の商品に届くのを防ぐ -->
 	<div class="pt-5" inert={sortOpen}>
@@ -553,6 +551,13 @@
 				{/each}
 			</ul>
 		{:else if groups.length === 0}
+			{#if monthSteps}
+				<!-- 商品が無くても月は送れる。ここで行き止まりにしない。
+				     余白は一覧の見出しと揃える。月を送るたびに位置が動いて見える -->
+				<div class="pt-2">
+					<MonthHeading yearMonth={data.filters.month} count={0} steps={monthSteps} />
+				</div>
+			{/if}
 			<EmptyState title={empty.title} hint={empty.hint} action={empty.action} />
 		{:else}
 			<div class="flex flex-col gap-6">
