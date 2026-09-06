@@ -39,7 +39,7 @@
 	// 年を選んでいる間も、過去を辿っている状態には変わりない。
 	// 先々月以前の月は年の一覧から来ているので、過去への入口を重ねて出さない
 	let viewingPast = $derived(
-		data.filters.month === 'earlier' ||
+		data.filters.month === 'browse' ||
 			selectedYear !== null ||
 			(selectedMonth !== null && selectedMonth < data.previousYearMonth)
 	);
@@ -217,16 +217,12 @@
 	});
 
 	/*
-	 * 過去への入口。既定では今月と来月しか出ないので、それ以前があることが分からない。
-	 * 過去を見ている間と、検索や絞り込みの結果を見ている間は出さない。条件から外れて見えるため。
+	 * 発売時期の一覧への入口。既定では今月しか出ないので、他の月があることが分からない。
+	 * 一覧を見ている間と、検索や絞り込みの結果を見ている間は出さない。条件から外れて見えるため。
 	 */
-	let pastEntry = $derived(
-		!viewingPast && applied.length === 0 && !data.filters.keyword && data.counts.past > 0
-			? {
-					href: link('month', 'earlier'),
-					count: data.counts.past,
-					oldestYear: data.counts.oldestYear
-				}
+	let browseEntry = $derived(
+		!viewingPast && applied.length === 0 && !data.filters.keyword
+			? { href: link('month', 'browse'), oldestYear: data.counts.oldestYear }
 			: null
 	);
 
@@ -415,14 +411,16 @@
 
 	<!-- 商品が無い月でも並びは変えられる。出し入れすると月を送るたびにちらつく -->
 	<div class="flex items-center justify-between gap-2 pt-3">
-		{#if pastEntry}
+		{#if browseEntry}
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<a href={pastEntry.href} class="text-note font-bold text-faint hover:text-accent">
-				過去の商品を探す ({pastEntry.count.toLocaleString('ja-JP')}件) →
+			<a href={browseEntry.href} class="text-note font-bold text-faint hover:text-accent">
+				発売時期から探す →
 			</a>
 		{:else if selectedYear || selectedMonth || data.filters.month === 'unknown'}
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<a href={link('month', 'earlier')} class="text-note font-bold text-accent"> ← 年の一覧へ </a>
+			<a href={link('month', 'browse')} class="text-note font-bold text-accent">
+				← 発売時期の一覧へ
+			</a>
 		{:else}
 			<span></span>
 		{/if}
@@ -557,19 +555,19 @@
 					</button>
 				</div>
 			{/if}
-			{#if pastEntry && !data.hasMore}
+			{#if browseEntry && !data.hasMore}
 				<!-- 読み終えた先に置く。ここまで来た人は、次に見るものを探している -->
 				<!-- eslint-disable svelte/no-navigation-without-resolve -->
 				<a
-					href={pastEntry.href}
+					href={browseEntry.href}
 					class="pressable mt-8 flex items-center justify-between gap-3 rounded-3xl bg-surface px-5 py-4 shadow-clay"
 				>
 					<span>
-						<span class="text-body font-extrabold">過去の商品を探す</span>
+						<span class="text-body font-extrabold">発売時期から探す</span>
 						<span class="block pt-0.5 text-note font-bold text-faint">
-							{pastEntry.oldestYear
-								? `${pastEntry.oldestYear}年からの${pastEntry.count.toLocaleString('ja-JP')}件`
-								: `${pastEntry.count.toLocaleString('ja-JP')}件`}
+							{browseEntry.oldestYear
+								? `${browseEntry.oldestYear}年からの発売月を年ごとに辿る`
+								: '発売月を年ごとに辿る'}
 						</span>
 					</span>
 					<span class="text-title font-extrabold text-accent">→</span>

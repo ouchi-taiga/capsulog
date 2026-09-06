@@ -48,16 +48,15 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 	let year: string | undefined;
 	// 既定は今月。前後の送りで隣の月へ行けるので、初めから2ヶ月を混ぜる必要がない
 	if (month === null && !keyword) yearMonths = [currentYearMonth(0)];
-	else if (month === 'earlier') untilYearMonth = currentYearMonth(-2);
 	// 年は先々月以前の中だけを見せる。年の一覧に出した件数と合わせる
 	else if (month && /^\d{4}$/.test(month)) {
 		year = month;
 		untilYearMonth = currentYearMonth(-2);
 	} else if (month && /^\d{4}-\d{2}$/.test(month)) yearMonths = [month];
 
-	// 過去は 185 ヶ月ある。年を選ばせてから月を見せる
+	// 掲載は 200 ヶ月を超える。年を選ばせてから月を見せる
 	// 検索や絞り込みの最中は、絞った結果をそのまま見たいので年の一覧を出さない
-	const showsYears = month === 'earlier' && !keyword && !makerCode && !priceBand;
+	const showsYears = month === 'browse' && !keyword && !makerCode && !priceBand;
 
 	const filters: ListFilters = {
 		yearMonths,
@@ -76,8 +75,8 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 	const [makers, list, counts, years] = await Promise.all([
 		listMakers(db),
 		showsYears ? { groups: [], total: 0, hasMore: false } : listProducts(db, filters),
-		countProducts(db, currentYearMonth(0), currentYearMonth(-2)),
-		showsYears ? listYearCounts(db, currentYearMonth(-2)) : []
+		countProducts(db, currentYearMonth(0)),
+		showsYears ? listYearCounts(db) : []
 	]);
 	return {
 		makers,
@@ -91,6 +90,6 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 		thisYearMonth: currentYearMonth(0),
 		// sort は URL で選ばれた値、activeSort は既定を含めて実際に効いている値
 		filters: { month, makerCode, priceBand, keyword, sort },
-		activeSort: sort ?? (month === 'earlier' || year ? 'release-desc' : 'release-asc')
+		activeSort: sort ?? (year ? 'release-desc' : 'release-asc')
 	};
 };

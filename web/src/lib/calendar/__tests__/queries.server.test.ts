@@ -354,7 +354,7 @@ describe('listYearCounts', () => {
 		await seed({ yearMonth: '2023-05' });
 		await seed({ yearMonth: null });
 
-		expect(await listYearCounts(db, '2026-07')).toEqual([
+		expect(await listYearCounts(db)).toEqual([
 			{
 				year: '2024',
 				count: 2,
@@ -367,12 +367,12 @@ describe('listYearCounts', () => {
 		]);
 	});
 
-	it('指定した月より後は数えない', async () => {
+	it('未来の月も数える。発売時期はどこからでも辿れる', async () => {
 		await seed({ yearMonth: '2026-07' });
-		await seed({ yearMonth: '2026-08' });
+		await seed({ yearMonth: '2027-01' });
 
-		// 境界の月は含める
-		expect(await listYearCounts(db, '2026-07')).toEqual([
+		expect(await listYearCounts(db)).toEqual([
+			{ year: '2027', count: 1, months: [{ yearMonth: '2027-01', count: 1 }] },
 			{ year: '2026', count: 1, months: [{ yearMonth: '2026-07', count: 1 }] }
 		]);
 	});

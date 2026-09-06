@@ -196,20 +196,19 @@ export async function listProducts(
 }
 
 /**
- * 指定した月以前を年ごとにまとめた件数。新しい年から順に返す
+ * 発売月を年ごとにまとめた件数。新しい年から順に返す
  *
- * 過去は 185 ヶ月あり、月をそのまま並べると一覧にならない。まず年を選ばせる。
+ * 掲載は 200 ヶ月を超え、月をそのまま並べると一覧にならない。まず年を選ばせる。
  * 年の中は月で辿れるよう、月ごとの件数も添える。
  */
-export async function listYearCounts(db: D1Database, untilYearMonth: string): Promise<YearCount[]> {
+export async function listYearCounts(db: D1Database): Promise<YearCount[]> {
 	const { results } = await db
 		.prepare(
 			`SELECT release_year_month AS yearMonth, count(*) AS count
 			 FROM products
-			 WHERE release_year_month IS NOT NULL AND release_year_month <= ?
+			 WHERE release_year_month IS NOT NULL
 			 GROUP BY yearMonth ORDER BY yearMonth DESC`
 		)
-		.bind(untilYearMonth)
 		.all<MonthCount>();
 
 	const years: YearCount[] = [];
@@ -226,37 +225,33 @@ export async function listYearCounts(db: D1Database, untilYearMonth: string): Pr
 	return years;
 }
 
-/** 件数のまとめ。ヒーローに出す数と、過去へ誘う数。past は untilYearMonth 以前 */
+/** 件数のまとめ。ヒーローに出す数と、発売時期の一覧へ誘うための数 */
 export async function countProducts(
 	db: D1Database,
-	yearMonth: string,
-	untilYearMonth: string
+	yearMonth: string
 ): Promise<{
 	thisMonth: number;
 	total: number;
-	past: number;
 	unknown: number;
 	oldestYear: string | null;
 }> {
 	const row = await db
 		.prepare(
 			`SELECT (SELECT count(*) FROM products WHERE release_year_month = ?) AS thisMonth,
-			        (SELECT count(*) FROM products WHERE release_year_month <= ?) AS past,
 			        (SELECT count(*) FROM products WHERE release_year_month IS NULL) AS unknown,
 			        (SELECT substr(min(release_year_month), 1, 4) FROM products
 			          WHERE release_year_month IS NOT NULL) AS oldestYear,
 			        count(*) AS total
 			 FROM products`
 		)
-		.bind(yearMonth, untilYearMonth)
+		.bind(yearMonth)
 		.first<{
 			thisMonth: number;
 			total: number;
-			past: number;
 			unknown: number;
 			oldestYear: string | null;
 		}>();
-	return row ?? { thisMonth: 0, total: 0, past: 0, unknown: 0, oldestYear: null };
+	return row ?? { thisMonth: 0, total: 0, unknown: 0, oldestYear: null };
 }
 
 /*
