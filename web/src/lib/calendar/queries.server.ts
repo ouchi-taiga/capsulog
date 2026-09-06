@@ -143,10 +143,26 @@ export async function countProducts(
 	return row ?? { thisMonth: 0, total: 0 };
 }
 
+/*
+ * LIKE のパターンが長いと D1 が「pattern too complex」で落ちる。上限は 50 バイト。
+ * 文字数で切ると絵文字などで超えるため、エスケープ後のバイト数で測る。
+ */
+const LIKE_PATTERN_MAX_BYTES = 48;
+
+/** 末尾を削り、LIKE のパターンとして収まる長さにする */
+export function fitToLikePattern(value: string): string {
+	const encoder = new TextEncoder();
+	let fitted = value;
+	while (fitted && encoder.encode(escapeLike(fitted)).length > LIKE_PATTERN_MAX_BYTES) {
+		fitted = [...fitted].slice(0, -1).join('');
+	}
+	return fitted;
+}
+
 /** シリーズ判定に使う商品名の頭。最初の語から末尾の数字を落とす */
 function seriesPrefix(name: string): string | null {
 	const token = name.split(/\s+/)[0] ?? '';
-	const prefix = token.replace(/[0-9０-９]+$/, '');
+	const prefix = fitToLikePattern(token.replace(/[0-9０-９]+$/, ''));
 	return prefix.length >= 2 ? prefix : null;
 }
 

@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createTestDb } from '$lib/common/testing/d1';
-import { getProduct, listMakers, listProducts, listSeriesProducts } from '../queries.server';
+import {
+	fitToLikePattern,
+	getProduct,
+	listMakers,
+	listProducts,
+	listSeriesProducts
+} from '../queries.server';
 
 let db: D1Database;
 let nextId = 1;
@@ -243,6 +249,45 @@ describe('listSeriesProducts', () => {
 
 		const series = await listSeriesProducts(db, await itemAt(id));
 		expect(series.map((item) => item.name)).toEqual(['トミカキーホルダー7']);
+	});
+
+	it('名前が長くても引ける。D1 は LIKE のパターンが長いと落ちる', async () => {
+		// 19文字。そのまま LIKE に渡すと 58 バイトで上限を超える
+		const id = await seed({ name: 'ヒトツブカンロのグミッツェルマスコット３' });
+		await seed({ name: 'ヒトツブカンロのグミッツェルマスコット２' });
+
+		const series = await listSeriesProducts(db, await itemAt(id));
+		expect(series.map((item) => item.name)).toEqual(['ヒトツブカンロのグミッツェルマスコット２']);
+	});
+});
+
+describe('fitToLikePattern', () => {
+	/* D1 の LIKE は 50 バイトが上限。エスケープ後の長さで測る */
+	function patternBytes(value: string): number {
+		const escaped = fitToLikePattern(value).replace(/[\\%_]/g, (character) => '\\' + character);
+		return new TextEncoder().encode(escaped + '%').length;
+	}
+
+	it('短い名前はそのまま', () => {
+		expect(fitToLikePattern('トミカ')).toBe('トミカ');
+	});
+
+	it('長い日本語を上限内に収める', () => {
+		expect(patternBytes('ヒトツブカンロのグミッツェルマスコット')).toBeLessThanOrEqual(50);
+	});
+
+	it('4バイト文字が並んでも上限を超えない', () => {
+		// 文字数で切ると 1文字4バイトで溢れる
+		expect(patternBytes('🎉'.repeat(20))).toBeLessThanOrEqual(50);
+	});
+
+	it('エスケープで膨らむ記号が並んでも上限を超えない', () => {
+		expect(patternBytes('%'.repeat(40))).toBeLessThanOrEqual(50);
+	});
+
+	it('4バイト文字を途中で割らない', () => {
+		const fitted = fitToLikePattern('🎉'.repeat(20));
+		expect(fitted).toBe('🎉'.repeat([...fitted].length));
 	});
 });
 
