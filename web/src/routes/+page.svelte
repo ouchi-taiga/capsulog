@@ -6,6 +6,7 @@
 	import * as Select from '$lib/common/components/ui/select';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { formatYearMonth } from '$lib/calendar/format';
+	import EmptyState from '$lib/calendar/components/EmptyState.svelte';
 	import MonthGroup from '$lib/calendar/components/MonthGroup.svelte';
 
 	let { data } = $props();
@@ -157,6 +158,30 @@
 			}
 		].filter((chip) => !!chip)
 	);
+
+	/* 空になった理由ごとに、言うことと次にできることを変える */
+	let empty = $derived.by(() => {
+		if (isFutureMonth) {
+			return {
+				title: 'まだ発表されていません',
+				hint: 'メーカーの発表は発売の1〜2ヶ月前です。発表されるとここに並びます。',
+				action: { label: '今月・来月を見る', href: link('month', null) }
+			};
+		}
+		if (data.filters.keyword) {
+			return {
+				title: `「${data.filters.keyword}」は見つかりませんでした`,
+				hint: '商品名の一部で探せます。ひらがなとカタカナは区別されます。',
+				action: { label: '検索をやめる', href: link('q', null) }
+			};
+		}
+		// 検索なしで空になるのは、絞り込みを重ねたとき
+		return {
+			title: 'この条件の商品はありません',
+			hint: '条件を減らすと見つかることがあります。',
+			action: applied.length > 0 ? { label: '条件をすべて外す', href: resolve('/') } : undefined
+		};
+	});
 </script>
 
 <svelte:head>
@@ -357,16 +382,7 @@
 				{/each}
 			</ul>
 		{:else if data.groups.length === 0}
-			<div class="flex flex-col gap-2 py-16 text-center text-body text-faint">
-				<p>この条件の商品はありません</p>
-				{#if isFutureMonth}
-					<!-- 句点で折り返す。文の途中では改行しない -->
-					<p class="text-note">
-						<span class="inline-block">メーカーの発表は発売の1〜2ヶ月前です。</span>
-						<span class="inline-block">発表までしばらくお待ちください。</span>
-					</p>
-				{/if}
-			</div>
+			<EmptyState title={empty.title} hint={empty.hint} action={empty.action} />
 		{:else}
 			<div class="flex flex-col gap-6">
 				{#each data.groups as group (group.yearMonth ?? 'unknown')}
