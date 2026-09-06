@@ -535,7 +535,8 @@
 			<EmptyState title={empty.title} hint={empty.hint} action={empty.action} />
 		{:else}
 			<div class="flex flex-col gap-6">
-				{#each groups as group (group.yearMonth ?? 'unknown')}
+				<!-- 価格順は月を持たない。見出しで見分ける -->
+				{#each groups as group (group.heading ?? group.yearMonth ?? 'unknown')}
 					<MonthGroup {group} />
 				{/each}
 			</div>

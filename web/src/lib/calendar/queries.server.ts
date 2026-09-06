@@ -147,22 +147,37 @@ export async function listProducts(
 	 * 総数を別に数える。
 	 * 読み込めた分だけで数えると、続きを読むたびに見出しの件数が増えていく。
 	 */
+	// 見出しに使う軸で数える。価格順なら価格ごと、そうでなければ月ごと
+	const groupBy = sort.startsWith('price') ? 'p.price' : 'p.release_year_month';
 	const { results: totals } = await db
 		.prepare(
-			`SELECT p.release_year_month AS yearMonth, count(*) AS count
+			`SELECT ${groupBy} AS key, count(*) AS count
 			 FROM products p JOIN makers m ON m.id = p.maker_id
 			 ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
-			 GROUP BY p.release_year_month`
+			 GROUP BY ${groupBy}`
 		)
 		.bind(...binds)
-		.all<{ yearMonth: string | null; count: number }>();
-	const countOf = new Map(totals.map((row) => [row.yearMonth, row.count]));
+		.all<{ key: string | number | null; count: number }>();
+	const countOf = new Map(totals.map((row) => [row.key, row.count]));
 
-	// 価格順は月が飛び飛びに並ぶ。月で切ると1件だけの見出しが延々と続くため、ひとまとめにする
+	/*
+	 * 価格順は価格で切る。実際に並ぶのは数種類なので、月と同じように見出しが立つ。
+	 * 月で切ると価格順にならず、ひとまとめでは同じ価格が延々と続いて順序が見えない。
+	 */
 	if (sort.startsWith('price')) {
-		const heading = sort === 'price-asc' ? '価格が安い順' : '価格が高い順';
-		const total = totals.reduce((sum, row) => sum + row.count, 0);
-		const groups = items.length > 0 ? [{ yearMonth: null, items, count: total, heading }] : [];
+		const groups: MonthGroup[] = [];
+		for (const item of items) {
+			const heading = item.price === null ? '価格不明' : `¥${item.price}`;
+			const last = groups.at(-1);
+			if (last && last.heading === heading) last.items.push(item);
+			else
+				groups.push({
+					yearMonth: null,
+					items: [item],
+					count: countOf.get(item.price) ?? 0,
+					heading
+				});
+		}
 		return { groups, total: items.length, hasMore };
 	}
 
