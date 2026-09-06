@@ -20,6 +20,8 @@
 		const params = new SvelteURLSearchParams(page.url.searchParams);
 		if (value === null) params.delete(key);
 		else params.set(key, value);
+		// 条件が変われば読み進めた分は無効になる。1ページ目から見せ直す
+		if (key !== 'limit') params.delete('limit');
 		const query = params.toString();
 		return query ? `?${query}` : resolve('/');
 	}
@@ -32,12 +34,17 @@
 		};
 	}
 
+	// 選んでいる年。'YYYY' でなければ null
+	let selectedYear = $derived(/^\d{4}$/.test(data.filters.month ?? '') ? data.filters.month : null);
+	// 年を選んでいる間も、過去を辿っている状態には変わりない
+	let viewingPast = $derived(data.filters.month === 'earlier' || selectedYear !== null);
+
 	// 時系列順に並べ、既定の「今月・来月」を先月と今月の間に挟む
 	let monthChips = $derived([
 		{
 			label: `先々月以前 (〜${formatYearMonth(data.earlierYearMonth).slice(5)})`,
 			href: link('month', 'earlier'),
-			on: data.filters.month === 'earlier'
+			on: viewingPast
 		},
 		monthChip('先月', data.previousYearMonth),
 		{ label: '今月・来月', href: link('month', null), on: data.filters.month === null },
@@ -81,6 +88,42 @@
 		'price-desc': '価格が高い順'
 	} as const;
 
+	let yearLinks = $derived(
+		data.years.map((entry) => ({ ...entry, href: link('month', entry.year) }))
+	);
+
+	let loading = $state(false);
+	let moreButton = $state<HTMLButtonElement | null>(null);
+
+	/** 続きを読む。limit を増やして load をやり直させる */
+	async function loadMore() {
+		if (loading || !data.hasMore) return;
+		loading = true;
+		// 積んだ分を消さずに増やすため、履歴を汚さず今の位置も保つ
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		await goto(link('limit', String(data.nextLimit)), {
+			replaceState: true,
+			noScroll: true,
+			keepFocus: true
+		});
+		loading = false;
+	}
+
+	// 下端が見えたら自動で読む。ボタンは JS が動かないときと、自動が届かないときの受け皿
+	$effect(() => {
+		const target = moreButton;
+		if (!target) return;
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries.some((entry) => entry.isIntersecting)) loadMore();
+			},
+			// 下端に着く手前から読み始める。待ち時間を感じさせない
+			{ rootMargin: '600px' }
+		);
+		observer.observe(target);
+		return () => observer.disconnect();
+	});
+
 	/** 並び替えを選んだら、その条件で開き直す */
 	function selectSort(value: string) {
 		// link() は resolve() 起点でクエリを組むが、静的解析では追えない
@@ -101,7 +144,10 @@
 				label:
 					{ unknown: '発売月不明', later: '再来月以降', earlier: '先々月以前' }[
 						data.filters.month
-					] ?? formatYearMonth(data.filters.month),
+					] ??
+					(/^\d{4}$/.test(data.filters.month)
+						? `${data.filters.month}年`
+						: formatYearMonth(data.filters.month)),
 				href: link('month', null)
 			},
 			data.filters.makerCode && {
@@ -294,6 +340,13 @@
 		</div>
 	{/if}
 
+	{#if selectedYear}
+		<p class="pt-3">
+			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+			<a href={link('month', 'earlier')} class="text-body font-bold text-accent">← 年の一覧へ</a>
+		</p>
+	{/if}
+
 	{#if data.filters.keyword}
 		<p class="pt-3 text-body text-faint">
 			「{data.filters.keyword}」の検索結果 {data.total}件{data.hasMore ? '以上' : ''}
@@ -320,7 +373,23 @@
 	{/if}
 
 	<div class="pt-5">
-		{#if data.groups.length === 0}
+		{#if data.years.length > 0}
+			<!-- 過去は 185 ヶ月ある。年を選ばせてから月を見せる -->
+			<ul class="flex flex-col gap-3">
+				{#each yearLinks as { year, count, href } (year)}
+					<li>
+						<a
+							{href}
+							class="pressable flex items-baseline gap-2.5 rounded-3xl bg-surface px-5 py-4 shadow-clay"
+						>
+							<span class="text-site font-extrabold tabular-nums">{year}</span>
+							<span class="text-body font-bold">年</span>
+							<span class="ml-auto text-note font-bold text-faint tabular-nums">{count}件</span>
+						</a>
+					</li>
+				{/each}
+			</ul>
+		{:else if data.groups.length === 0}
 			<div class="flex flex-col gap-2 py-16 text-center text-body text-faint">
 				<p>この条件の商品はありません</p>
 				{#if isFutureMonth}
@@ -338,9 +407,18 @@
 				{/each}
 			</div>
 			{#if data.hasMore}
-				<p class="pt-6 text-center text-note text-faint">
-					表示は{data.total}件まで。絞り込みか検索で狭められます
-				</p>
+				<!-- 下端が見えたら自動で読む。JS が動かないときのためにボタンも押せる形にする -->
+				<div class="flex justify-center pt-6">
+					<button
+						type="button"
+						bind:this={moreButton}
+						onclick={loadMore}
+						disabled={loading}
+						class="pressable rounded-full bg-surface px-6 py-2.5 text-body font-bold text-accent shadow-clay-sm disabled:opacity-60"
+					>
+						{loading ? '読み込み中…' : 'さらに表示'}
+					</button>
+				</div>
 			{/if}
 		{/if}
 	</div>

@@ -1,4 +1,11 @@
-import type { Maker, MonthGroup, ProductDetail, ProductListItem, Variant } from './types';
+import type {
+	Maker,
+	MonthGroup,
+	ProductDetail,
+	ProductListItem,
+	Variant,
+	YearCount
+} from './types';
 
 export type ListFilters = {
 	/** 絞り込む発売月。空配列は全期間 */
@@ -7,6 +14,8 @@ export type ListFilters = {
 	fromYearMonth?: string;
 	/** この月以前を出す。「先々月以前」用。新しい月から順に返す */
 	untilYearMonth?: string;
+	/** この年のものだけを出す。'YYYY'。過去を年で辿るときに使う */
+	year?: string;
 	/** true なら発売月不明だけを出す */
 	unknownOnly?: boolean;
 	makerCode?: string;
@@ -14,12 +23,21 @@ export type ListFilters = {
 	keyword?: string;
 	/** 並び順。省略時は月の絞り込みに合わせて向きを決める */
 	sort?: Sort;
+	/** 先頭から何件返すか。スクロールで続きを読むたびに増える */
+	limit?: number;
 };
 
 export type Sort = 'release-asc' | 'release-desc' | 'price-asc' | 'price-desc';
 
-/** 1回で取る上限。超えたら「続きがある」として返す */
-const PAGE_LIMIT = 300;
+/*
+ * 1回で取る件数。スクロールで続きを足していく。
+ * 既定表示は 20 件前後、年で辿っても月あたり 12 件ほど。
+ * 大きくしても最初の1画面より下は読まれず、待ち時間だけ延びる。
+ */
+export const PAGE_SIZE = 60;
+
+/* 読み進められる上限。URL を書き換えて極端な値を渡されても、D1 を1回で酷使させない */
+export const MAX_LIMIT = 1200;
 
 const SELECT_ITEM = `
 	SELECT p.id, p.name, p.price,
@@ -66,6 +84,14 @@ export async function listProducts(
 
 	if (filters.unknownOnly) {
 		where.push('p.release_year_month IS NULL');
+	} else if (filters.year) {
+		where.push('substr(p.release_year_month, 1, 4) = ?');
+		binds.push(filters.year);
+		// 年の一覧は先々月以前の件数で出している。押した先も同じ範囲に合わせる
+		if (filters.untilYearMonth) {
+			where.push('p.release_year_month <= ?');
+			binds.push(filters.untilYearMonth);
+		}
 	} else if (filters.fromYearMonth) {
 		where.push('p.release_year_month >= ?');
 		binds.push(filters.fromYearMonth);
@@ -89,7 +115,8 @@ export async function listProducts(
 	}
 
 	// 指定が無ければ現在から遠ざかる向き。過去をさかのぼる表示だけ新しい月が先になる
-	const sort: Sort = filters.sort ?? (filters.untilYearMonth ? 'release-desc' : 'release-asc');
+	const goingBack = Boolean(filters.untilYearMonth || filters.year);
+	const sort: Sort = filters.sort ?? (goingBack ? 'release-desc' : 'release-asc');
 	const descending = sort.endsWith('-desc');
 	const direction = descending ? 'DESC' : 'ASC';
 
@@ -98,23 +125,41 @@ export async function listProducts(
 		? `p.price IS NULL, p.price ${direction}, p.name`
 		: // 月をまたぐ向きに月の中も揃える。新しい順なら下旬が先に来る
 			`p.release_year_month ${direction}, ${RELEASE_ORDER} ${direction}, p.name`;
+	// 続きを足していくため、並びが毎回同じでなければならない。同名の商品があるので id で決着させる
 	const sql = `${SELECT_ITEM}
 		${where.length ? 'WHERE ' + where.join(' AND ') : ''}
-		ORDER BY p.release_year_month IS NULL, ${order}
-		LIMIT ${PAGE_LIMIT + 1}`;
+		ORDER BY p.release_year_month IS NULL, ${order}, p.id
+		LIMIT ?`;
 
+	const limit = filters.limit ?? PAGE_SIZE;
 	const { results } = await db
 		.prepare(sql)
-		.bind(...binds)
+		.bind(...binds, limit + 1)
 		.all<ProductListItem>();
 
-	const hasMore = results.length > PAGE_LIMIT;
-	const items = hasMore ? results.slice(0, PAGE_LIMIT) : results;
+	const hasMore = results.length > limit;
+	const items = hasMore ? results.slice(0, limit) : results;
+
+	/*
+	 * 総数を別に数える。
+	 * 読み込めた分だけで数えると、続きを読むたびに見出しの件数が増えていく。
+	 */
+	const { results: totals } = await db
+		.prepare(
+			`SELECT p.release_year_month AS yearMonth, count(*) AS count
+			 FROM products p JOIN makers m ON m.id = p.maker_id
+			 ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+			 GROUP BY p.release_year_month`
+		)
+		.bind(...binds)
+		.all<{ yearMonth: string | null; count: number }>();
+	const countOf = new Map(totals.map((row) => [row.yearMonth, row.count]));
 
 	// 価格順は月が飛び飛びに並ぶ。月で切ると1件だけの見出しが延々と続くため、ひとまとめにする
 	if (sort.startsWith('price')) {
 		const heading = sort === 'price-asc' ? '価格が安い順' : '価格が高い順';
-		const groups = items.length > 0 ? [{ yearMonth: null, items, heading }] : [];
+		const total = totals.reduce((sum, row) => sum + row.count, 0);
+		const groups = items.length > 0 ? [{ yearMonth: null, items, count: total, heading }] : [];
 		return { groups, total: items.length, hasMore };
 	}
 
@@ -122,9 +167,32 @@ export async function listProducts(
 	for (const item of items) {
 		const last = groups.at(-1);
 		if (last && last.yearMonth === item.yearMonth) last.items.push(item);
-		else groups.push({ yearMonth: item.yearMonth, items: [item] });
+		else
+			groups.push({
+				yearMonth: item.yearMonth,
+				items: [item],
+				count: countOf.get(item.yearMonth) ?? 0
+			});
 	}
 	return { groups, total: items.length, hasMore };
+}
+
+/**
+ * 指定した月以前を年ごとにまとめた件数。新しい年から順に返す
+ *
+ * 過去は 185 ヶ月あり、月をそのまま並べると一覧にならない。まず年を選ばせる。
+ */
+export async function listYearCounts(db: D1Database, untilYearMonth: string): Promise<YearCount[]> {
+	const { results } = await db
+		.prepare(
+			`SELECT substr(release_year_month, 1, 4) AS year, count(*) AS count
+			 FROM products
+			 WHERE release_year_month IS NOT NULL AND release_year_month <= ?
+			 GROUP BY year ORDER BY year DESC`
+		)
+		.bind(untilYearMonth)
+		.all<YearCount>();
+	return results;
 }
 
 /** ヒーローに出す件数。今月の新作の数と掲載の全体数 */

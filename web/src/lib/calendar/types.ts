@@ -16,9 +16,16 @@ export type ProductListItem = {
 	makerName: string;
 };
 
+export type YearCount = {
+	year: string;
+	count: number;
+};
+
 export type MonthGroup = {
 	yearMonth: string | null;
 	items: ProductListItem[];
+	/** その月の総数。読み込めた件数ではない */
+	count?: number;
 	/** 見出しの文言。月で切らない並びのときに使う */
 	heading?: string;
 };

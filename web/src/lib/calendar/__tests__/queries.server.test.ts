@@ -5,7 +5,8 @@ import {
 	getProduct,
 	listMakers,
 	listProducts,
-	listSeriesProducts
+	listSeriesProducts,
+	listYearCounts
 } from '../queries.server';
 
 let db: D1Database;
@@ -258,6 +259,106 @@ describe('listSeriesProducts', () => {
 
 		const series = await listSeriesProducts(db, await itemAt(id));
 		expect(series.map((item) => item.name)).toEqual(['ヒトツブカンロのグミッツェルマスコット２']);
+	});
+});
+
+describe('listProducts のページング', () => {
+	/* 同じ月・同じ名前でも並びが決まることを確かめたいので、区別のつかない商品を入れる */
+	async function seedMany(count: number): Promise<void> {
+		for (let index = 0; index < count; index++) {
+			await seed({ name: '同じ名前', yearMonth: '2026-09' });
+		}
+	}
+
+	it('limit までで切り、続きがあることを伝える', async () => {
+		await seedMany(5);
+
+		const first = await listProducts(db, { yearMonths: [], limit: 3 });
+		expect(first.total).toBe(3);
+		expect(first.hasMore).toBe(true);
+	});
+
+	it('ちょうど limit 件なら続きはない', async () => {
+		await seedMany(3);
+
+		const result = await listProducts(db, { yearMonths: [], limit: 3 });
+		expect(result.total).toBe(3);
+		expect(result.hasMore).toBe(false);
+	});
+
+	it('月の件数は総数を返す。読み込めた分ではない', async () => {
+		await seedMany(5);
+
+		const { groups } = await listProducts(db, { yearMonths: [], limit: 3 });
+		// 3件しか読めていなくても、その月には5件ある
+		expect(groups[0]?.items).toHaveLength(3);
+		expect(groups[0]?.count).toBe(5);
+	});
+
+	it('価格順の件数も総数を返す', async () => {
+		await seedMany(5);
+
+		const { groups } = await listProducts(db, { yearMonths: [], sort: 'price-asc', limit: 3 });
+		expect(groups[0]?.items).toHaveLength(3);
+		expect(groups[0]?.count).toBe(5);
+	});
+
+	it('絞り込みは月の件数にも効く', async () => {
+		await seed({ yearMonth: '2026-09', makerCode: 'kitan' });
+		await seed({ yearMonth: '2026-09', makerCode: 'tarlin' });
+
+		const { groups } = await listProducts(db, { yearMonths: [], makerCode: 'kitan' });
+		expect(groups[0]?.count).toBe(1);
+	});
+
+	it('limit を増やすと、前に見えていた分がそのまま先頭に残る', async () => {
+		await seedMany(5);
+
+		const ids = async (limit: number) =>
+			(await listProducts(db, { yearMonths: [], limit })).groups.flatMap((group) =>
+				group.items.map((item) => item.id)
+			);
+
+		const first = await ids(3);
+		const second = await ids(6);
+		// 並びが揺れると、読み進めたときに取りこぼしや重複が出る
+		expect(second.slice(0, 3)).toEqual(first);
+		expect(new Set(second).size).toBe(second.length);
+	});
+});
+
+describe('listYearCounts', () => {
+	it('年ごとにまとめ、新しい年から返す', async () => {
+		await seed({ yearMonth: '2024-03' });
+		await seed({ yearMonth: '2024-08' });
+		await seed({ yearMonth: '2023-05' });
+		await seed({ yearMonth: null });
+
+		expect(await listYearCounts(db, '2026-07')).toEqual([
+			{ year: '2024', count: 2 },
+			{ year: '2023', count: 1 }
+		]);
+	});
+
+	it('指定した月より後は数えない', async () => {
+		await seed({ yearMonth: '2026-07' });
+		await seed({ yearMonth: '2026-08' });
+
+		// 境界の月は含める
+		expect(await listYearCounts(db, '2026-07')).toEqual([{ year: '2026', count: 1 }]);
+	});
+});
+
+describe('listProducts の年の絞り込み', () => {
+	it('年で絞り、上限の月より後は出さない', async () => {
+		await seed({ name: '7月', yearMonth: '2026-07' });
+		await seed({ name: '9月', yearMonth: '2026-09' });
+		await seed({ name: '前年', yearMonth: '2025-12' });
+
+		// 年一覧の件数と、押した先の件数を合わせる
+		expect(await names({ yearMonths: [], year: '2026', untilYearMonth: '2026-07' })).toEqual([
+			'7月'
+		]);
 	});
 });
 
