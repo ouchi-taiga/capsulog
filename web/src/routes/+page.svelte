@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { page } from '$app/state';
-	import { slide } from 'svelte/transition';
-	import { cubicOut } from 'svelte/easing';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import * as Popover from '$lib/common/components/ui/popover';
@@ -111,6 +109,8 @@
 
 	/* 開いている年。1つだけ開く。並べたままだと 17 年分の月が縦に続く */
 	let openYear = $state<string | null>(null);
+	/* 開く先の高さ。折り返しは画面幅で変わるため、中身を測って持つ */
+	let heights = $state<Record<string, number>>({});
 
 	/*
 	 * 並び替えが開いている間、一覧の操作を止める。
@@ -470,12 +470,13 @@
 			<ul class="flex flex-col gap-3">
 				{#each yearLinks as { year, count, href, months } (year)}
 					{@const open = openYear === year}
-					<li>
+					<!-- 年のカードそのものが下に伸びる。中身は同じ面に収める -->
+					<li class="overflow-hidden rounded-3xl bg-surface shadow-clay">
 						<button
 							type="button"
 							onclick={() => (openYear = open ? null : year)}
 							aria-expanded={open}
-							class="pressable flex w-full items-baseline gap-2.5 rounded-3xl bg-surface px-5 py-4 text-left shadow-clay"
+							class="pressable-flat flex w-full items-baseline gap-2.5 px-5 py-4 text-left"
 						>
 							<span class="text-site font-extrabold tabular-nums">{year}</span>
 							<span class="text-body font-bold">年</span>
@@ -490,12 +491,12 @@
 								▾
 							</span>
 						</button>
-						{#if open}
-							<!-- eslint-disable svelte/no-navigation-without-resolve -->
-							<!-- 高さを送って開閉させる。閉じるときも同じ道をたどる -->
-							<div transition:slide={{ duration: 260, easing: cubicOut }}>
-								<ul class="flex flex-wrap gap-2 px-2 pt-3">
-									<li>
+						<!-- 中身の実寸へ向けて開く。折り返しは画面幅で変わるので、その都度測る -->
+						<div class={['fold', open && 'fold-open']} style="--height: {heights[year] ?? 0}px">
+							<div bind:offsetHeight={heights[year]}>
+								<!-- eslint-disable svelte/no-navigation-without-resolve -->
+								<ul class="flex flex-wrap gap-2 px-5 pt-1 pb-5">
+									<li class="fold-item">
 										<a
 											{href}
 											class="pressable flex items-baseline gap-1 rounded-2xl bg-ground px-4 py-2.5 shadow-clay-sm"
@@ -506,8 +507,8 @@
 											</span>
 										</a>
 									</li>
-									{#each months as month (month.yearMonth)}
-										<li>
+									{#each months as month, index (month.yearMonth)}
+										<li class="fold-item" style="--order: {index + 1}">
 											<a
 												href={month.href}
 												class="pressable flex items-baseline gap-1 rounded-2xl bg-ground px-4 py-2.5 shadow-clay-sm"
@@ -523,9 +524,9 @@
 										</li>
 									{/each}
 								</ul>
+								<!-- eslint-enable svelte/no-navigation-without-resolve -->
 							</div>
-							<!-- eslint-enable svelte/no-navigation-without-resolve -->
-						{/if}
+						</div>
 					</li>
 				{/each}
 			</ul>
