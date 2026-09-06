@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import type { ProductListItem } from '../types';
 	import { capsuleColorAt } from '../capsule';
 	import { formatDetail, formatYearMonth, releaseHighlight } from '../format';
@@ -13,14 +14,28 @@
 	let detail = $derived(formatDetail(item.precision, item.detail));
 	let highlight = $derived(releaseHighlight(item.yearMonth, item.precision, item.detail));
 
+	/*
+	 * 戻り先の一覧。絞り込みと並び順はすべてクエリに載っているので、そのまま持たせる。
+	 * 詳細のシリーズ欄から辿ったときは、すでに持っている戻り先を引き継ぐ。
+	 */
+	let back = $derived(
+		page.url.pathname === '/'
+			? page.url.search.replace(/^\?/, '') || undefined
+			: (page.url.searchParams.get('back') ?? undefined)
+	);
+
 	/* 並べるカプセルの数。多い商品は溢れるため打ち切り、残りは数で見せる */
 	const SHOWN_CAPSULES = 8;
 	let shown = $derived(Math.min(item.totalVariants ?? 0, SHOWN_CAPSULES));
 	let rest = $derived((item.totalVariants ?? 0) - shown);
 </script>
 
+<!-- eslint-disable svelte/no-navigation-without-resolve -->
+<!-- resolve() 起点でクエリを足すが、静的解析では追えない -->
 <a
-	href={resolve('/products/[id]', { id: String(item.id) })}
+	href={back
+		? `${resolve('/products/[id]', { id: String(item.id) })}?back=${encodeURIComponent(back)}`
+		: resolve('/products/[id]', { id: String(item.id) })}
 	class="pressable relative flex h-full flex-col overflow-hidden rounded-3xl bg-surface px-4 py-3.5 shadow-clay"
 >
 	<!-- z-0 で背面に送る。バッジと重なる位置にあるため、上に乗ると滲んで見える -->
@@ -69,6 +84,8 @@
 		{/if}
 	</div>
 </a>
+
+<!-- eslint-enable svelte/no-navigation-without-resolve -->
 
 <style>
 	/* カードの隅の装飾。リストの偶数行は円でなく四角にする */

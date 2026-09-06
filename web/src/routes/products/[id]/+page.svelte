@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import { formatRelease, releaseStatus } from '$lib/calendar/format';
 	import CapsuleBullet from '$lib/calendar/components/CapsuleBullet.svelte';
 	import CapsuleRow from '$lib/calendar/components/CapsuleRow.svelte';
@@ -12,6 +13,9 @@
 	let product = $derived(data.product);
 	let status = $derived(releaseStatus(product.yearMonth, product.precision, product.detail));
 	let release = $derived(formatRelease(product.yearMonth, product.precision, product.detail));
+
+	/* 見ていた一覧に帰る。絞り込みと並び順はクエリに入っている */
+	let back = $derived(page.url.searchParams.get('back'));
 </script>
 
 <svelte:head>
@@ -104,14 +108,17 @@
 	{/if}
 </main>
 
-<!-- 画面端ではなく本文の左端に置く。中身と同じ幅の枠を敷いて、その中で左に寄せる -->
+<!-- スクロールしても付いてくるので、本文ではなくヘッダーと同じ幅に揃える -->
 <div class="pointer-events-none fixed inset-x-0 bottom-5 z-10 px-4">
-	<div class="mx-auto max-w-2xl">
+	<div class="mx-auto max-w-2xl lg:max-w-5xl">
+		<!-- eslint-disable svelte/no-navigation-without-resolve -->
+		<!-- resolve() 起点でクエリを足すが、静的解析では追えない -->
 		<a
-			href={resolve('/')}
+			href={back ? `${resolve('/')}?${back}` : resolve('/')}
 			class="pressable pointer-events-auto inline-block rounded-full bg-surface px-5 py-3 text-body font-extrabold shadow-clay"
 		>
 			← カレンダー
 		</a>
+		<!-- eslint-enable svelte/no-navigation-without-resolve -->
 	</div>
 </div>
