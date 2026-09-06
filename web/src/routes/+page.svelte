@@ -2,9 +2,9 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
+	import * as Dialog from '$lib/common/components/ui/dialog';
 	import * as Select from '$lib/common/components/ui/select';
-	import { fade, fly } from 'svelte/transition';
-	import { MediaQuery, SvelteURLSearchParams } from 'svelte/reactivity';
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { formatYearMonth } from '$lib/calendar/format';
 	import MonthGroup from '$lib/calendar/components/MonthGroup.svelte';
 
@@ -12,9 +12,6 @@
 
 	// シートの開閉。同一ルート内の遷移ではコンポーネントが生きるので、条件を選んでも閉じない
 	let filtersOpen = $state(false);
-	const reduceMotion = new MediaQuery('(prefers-reduced-motion: reduce)');
-	let motionMs = $derived(reduceMotion.current ? 0 : 200);
-
 	/** 現在の URL から1つのパラメータだけ差し替えたリンクを作る */
 	function link(key: string, value: string | null): string {
 		const params = new SvelteURLSearchParams(page.url.searchParams);
@@ -162,12 +159,6 @@
 	);
 </script>
 
-<svelte:window
-	onkeydown={(event) => {
-		if (event.key === 'Escape') filtersOpen = false;
-	}}
-/>
-
 <svelte:head>
 	<title>カプセログ | カプセルトイ発売カレンダー</title>
 	<meta
@@ -277,55 +268,31 @@
 </div>
 
 <main class="mx-auto max-w-2xl px-4 pb-16 lg:max-w-5xl">
-	{#if filtersOpen}
-		<div class="fixed inset-0 z-20">
-			<button
-				type="button"
-				aria-label="絞り込みを閉じる"
-				onclick={() => (filtersOpen = false)}
-				class="absolute inset-0 bg-[#1c1b1e]/35"
-				transition:fade={{ duration: motionMs }}
-			></button>
-			<div
-				role="dialog"
-				aria-label="絞り込み"
-				transition:fly={{ y: 240, duration: motionMs }}
-				class="absolute inset-x-0 bottom-0 mx-auto flex max-h-[75dvh] max-w-2xl flex-col gap-4 overflow-y-auto rounded-t-3xl bg-surface p-5 pb-8"
-			>
-				<div class="flex items-center justify-between">
-					<p class="text-body font-extrabold">絞り込み</p>
-					<button
-						type="button"
-						aria-label="閉じる"
-						onclick={() => (filtersOpen = false)}
-						class="pressable grid h-8 w-8 place-items-center rounded-full bg-ground text-faint shadow-clay-sm"
-					>
-						✕
-					</button>
-				</div>
-				{#each [['発売月', monthChips], ['メーカー', makerChips], ['価格', priceChips]] as const as [label, chips] (label)}
-					<div>
-						<p class="pb-2 text-note font-bold text-faint">{label}</p>
-						<div class="flex flex-wrap gap-2">
-							{#each chips as chip (chip.label)}
-								<a
-									href={chip.href}
-									class={[
-										'pressable rounded-full px-3.5 py-1.5 text-note font-bold whitespace-nowrap',
-										chip.on
-											? 'bg-accent text-on-accent shadow-clay-pressed'
-											: 'bg-ground text-faint shadow-clay-sm'
-									]}
-								>
-									{chip.label}
-								</a>
-							{/each}
-						</div>
+	<Dialog.Root bind:open={filtersOpen}>
+		<Dialog.Content>
+			<Dialog.Title>絞り込み</Dialog.Title>
+			{#each [['発売月', monthChips], ['メーカー', makerChips], ['価格', priceChips]] as const as [label, chips] (label)}
+				<div>
+					<p class="pb-2 text-note font-bold text-faint">{label}</p>
+					<div class="flex flex-wrap gap-2">
+						{#each chips as chip (chip.label)}
+							<a
+								href={chip.href}
+								class={[
+									'pressable rounded-full px-3.5 py-1.5 text-note font-bold whitespace-nowrap',
+									chip.on
+										? 'bg-accent text-on-accent shadow-clay-pressed'
+										: 'bg-ground text-faint shadow-clay-sm'
+								]}
+							>
+								{chip.label}
+							</a>
+						{/each}
 					</div>
-				{/each}
-			</div>
-		</div>
-	{/if}
+				</div>
+			{/each}
+		</Dialog.Content>
+	</Dialog.Root>
 
 	{#if applied.length > 0}
 		<div class="flex flex-wrap gap-2 pt-3" aria-label="選択中の条件">
