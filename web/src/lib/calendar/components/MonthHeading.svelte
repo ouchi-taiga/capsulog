@@ -1,13 +1,18 @@
 <script lang="ts">
 	import { currentYearMonth } from '../format';
 
+	type Step = { month: string; href: string };
+
 	let {
 		yearMonth,
-		count
+		count,
+		steps = null
 	}: {
 		/** 'YYYY-MM'。null は発売月不明 */
 		yearMonth: string | null;
 		count: number;
+		/** 月をめくる道。1つの月を見ているときだけ渡す */
+		steps?: { previous: Step; next: Step; home: string | null } | null;
 	} = $props();
 
 	let year = $derived(yearMonth?.split('-')[0] ?? null);
@@ -19,7 +24,7 @@
 	);
 </script>
 
-<h2 class="flex items-center gap-2.5 px-1 pb-3">
+<h2 class="flex flex-wrap items-center gap-x-2.5 gap-y-2 px-1 pb-3">
 	{#if month === null}
 		<span class="text-title font-extrabold text-faint">発売月不明</span>
 	{:else}
@@ -38,4 +43,37 @@
 		{/if}
 	{/if}
 	<span class="text-note text-faint">{count}件</span>
+	{#if steps}
+		<!-- 現在地に対する操作なので、見出しと同じ行に置く -->
+		<!-- eslint-disable svelte/no-navigation-without-resolve -->
+		<!--
+			幅を決めて並べる。月の桁数や「今月」の有無で位置が動くと、
+			続けて押すたびに指の下からボタンが逃げる
+		-->
+		<span class="ml-auto grid w-45 flex-none grid-cols-3 gap-1.5">
+			<a
+				href={steps.previous.href}
+				class="pressable rounded-full bg-surface py-1.5 text-center text-note font-bold shadow-clay-sm"
+			>
+				← {steps.previous.month}月
+			</a>
+			{#if steps.home}
+				<a
+					href={steps.home}
+					class="pressable rounded-full bg-surface py-1.5 text-center text-note font-bold text-accent shadow-clay-sm"
+				>
+					今月
+				</a>
+			{:else}
+				<span></span>
+			{/if}
+			<a
+				href={steps.next.href}
+				class="pressable rounded-full bg-surface py-1.5 text-center text-note font-bold shadow-clay-sm"
+			>
+				{steps.next.month}月 →
+			</a>
+		</span>
+		<!-- eslint-enable svelte/no-navigation-without-resolve -->
+	{/if}
 </h2>
