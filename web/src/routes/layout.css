@@ -50,6 +50,13 @@
 	--shadow-clay-pressed:
 		5px 6px 12px var(--sh), inset 2px 3px 4px rgba(255, 255, 255, 0.45),
 		inset -2px -4px 6px rgba(163, 55, 47, 0.4);
+
+	/* 動きの決まり。行き過ぎて戻る曲線で、樹脂の弾力に合わせる。
+	   第2引数が行き過ぎの量。1.8 で 18% ほど超えてから戻る */
+	--ease-bounce: cubic-bezier(0.34, 1.8, 0.64, 1);
+	--duration-press: 0.15s;
+	--duration-open: 0.3s;
+	--duration-large: 0.44s;
 }
 
 body {
@@ -72,6 +79,11 @@ body {
 	.pressable:hover {
 		transform: translateY(-2px);
 	}
+	/* 開いている間は浮かせない。
+	   カーソルが中身へ移るとホバーが外れ、開いた面ごと下にずれてしまう */
+	.pressable[data-state='open']:hover {
+		transform: none;
+	}
 }
 .pressable:active {
 	transform: translateY(1px) scale(0.98);
@@ -83,6 +95,30 @@ body {
 	.pressable:active {
 		transition: none;
 		transform: none;
+	}
+}
+
+/* 重なって出る面。閉じた側の辺を起点に、縦に潰れた状態から伸びる。
+   伸びきる手前で少し行き過ぎて戻り、そこから出てきたように見せる */
+.select-pop[data-state='open'] {
+	/* 横は中央で固定する。左右に寄せると縮んだ側だけが動いて横揺れに見える */
+	transform-origin: center top;
+	animation: pop-out var(--duration-open) var(--ease-bounce);
+}
+/* 上に出るときは下辺から伸ばす。トリガーのある側が起点になる */
+.select-pop[data-state='open'][data-side='top'] {
+	transform-origin: center bottom;
+}
+@keyframes pop-out {
+	from {
+		/* 縦に潰すだけ。横に縮めると原点の反対側だけが動いて、横揺れに見える */
+		transform: scaleY(0.35);
+		opacity: 0;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.select-pop[data-state='open'] {
+		animation: none;
 	}
 }
 

@@ -6,6 +6,7 @@
 	import * as Select from '$lib/common/components/ui/select';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { formatYearMonth } from '$lib/calendar/format';
+	import FlipText from '$lib/common/components/FlipText.svelte';
 	import EmptyState from '$lib/calendar/components/EmptyState.svelte';
 	import MonthGroup from '$lib/calendar/components/MonthGroup.svelte';
 
@@ -363,8 +364,9 @@
 				onValueChange={selectSort}
 				bind:open={sortOpen}
 			>
-				<Select.Trigger aria-labelledby="sort-label">
-					{SORT_LABELS[data.activeSort]}
+				<!-- 選ぶ語で幅が動かないよう、開いたときのパネルと同じ幅に固定する -->
+				<Select.Trigger aria-labelledby="sort-label" class="w-40">
+					<FlipText value={SORT_LABELS[data.activeSort]} />
 				</Select.Trigger>
 				<Select.Content align="end" sideOffset={8}>
 					{#each Object.entries(SORT_LABELS) as [value, label] (value)}

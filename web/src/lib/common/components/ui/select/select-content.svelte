@@ -31,7 +31,8 @@
 		{preventScroll}
 		data-slot="select-content"
 		class={cn(
-			'relative isolate z-50 min-w-36 overflow-x-hidden overflow-y-auto rounded-2xl bg-surface p-1.5 text-ink shadow-clay',
+			// 幅はトリガーに揃える。広いと開いたときに横へ広がって見える
+			'select-pop relative isolate z-50 w-(--bits-select-anchor-width) overflow-x-hidden overflow-y-auto rounded-2xl bg-surface p-1.5 text-ink shadow-clay',
 			className
 		)}
 		{...restProps}
