@@ -391,6 +391,51 @@ describe('listYearCounts', () => {
 	});
 });
 
+describe('listProducts の条件の組み合わせ', () => {
+	it('月とメーカーを重ねると、両方に当てはまるものだけが出る', async () => {
+		await seed({ name: '9月の奇譚', yearMonth: '2026-09', makerCode: 'kitan' });
+		await seed({ name: '9月のターリン', yearMonth: '2026-09', makerCode: 'tarlin' });
+		await seed({ name: '8月の奇譚', yearMonth: '2026-08', makerCode: 'kitan' });
+
+		expect(await names({ yearMonths: ['2026-09'], makerCode: 'kitan' })).toEqual(['9月の奇譚']);
+	});
+
+	it('月と価格帯を重ねる', async () => {
+		await seed({ name: '9月300', yearMonth: '2026-09', price: 300 });
+		await seed({ name: '9月500', yearMonth: '2026-09', price: 500 });
+		await seed({ name: '8月300', yearMonth: '2026-08', price: 300 });
+
+		expect(await names({ yearMonths: ['2026-09'], priceBand: '300' })).toEqual(['9月300']);
+	});
+
+	it('検索語と絞り込みを重ねる', async () => {
+		await seed({ name: 'ねこA', makerCode: 'kitan', price: 300 });
+		await seed({ name: 'ねこB', makerCode: 'tarlin', price: 300 });
+		await seed({ name: 'いぬA', makerCode: 'kitan', price: 300 });
+
+		expect(await names({ yearMonths: [], keyword: 'ねこ', makerCode: 'kitan' })).toEqual(['ねこA']);
+	});
+
+	it('三つ重ねても絞れる', async () => {
+		await seed({ name: '当たり', yearMonth: '2026-09', makerCode: 'kitan', price: 300 });
+		await seed({ name: '月が違う', yearMonth: '2026-08', makerCode: 'kitan', price: 300 });
+		await seed({ name: 'メーカーが違う', yearMonth: '2026-09', makerCode: 'tarlin', price: 300 });
+		await seed({ name: '価格が違う', yearMonth: '2026-09', makerCode: 'kitan', price: 500 });
+
+		expect(await names({ yearMonths: ['2026-09'], makerCode: 'kitan', priceBand: '300' })).toEqual([
+			'当たり'
+		]);
+	});
+
+	it('重ねて当てはまるものが無ければ空で返す', async () => {
+		await seed({ name: 'A', yearMonth: '2026-09', makerCode: 'kitan' });
+
+		const result = await listProducts(db, { yearMonths: ['2026-09'], makerCode: 'tarlin' });
+		expect(result.groups).toEqual([]);
+		expect(result.total).toBe(0);
+	});
+});
+
 describe('listProducts の年の絞り込み', () => {
 	it('年で絞り、上限の月より後は出さない', async () => {
 		await seed({ name: '7月', yearMonth: '2026-07' });

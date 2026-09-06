@@ -86,7 +86,6 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 		offset,
 		nextOffset: offset + limit,
 		...list,
-		previousYearMonth: currentYearMonth(-1),
 		thisYearMonth: currentYearMonth(0),
 		// sort は URL で選ばれた値、activeSort は既定を含めて実際に効いている値
 		filters: { month, makerCode, priceBand, keyword, sort },

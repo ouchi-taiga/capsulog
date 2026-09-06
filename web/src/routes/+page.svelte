@@ -30,20 +30,6 @@
 		return query ? `?${query}` : resolve('/');
 	}
 
-	// 選んでいる年。'YYYY' でなければ null
-	let selectedYear = $derived(/^\d{4}$/.test(data.filters.month ?? '') ? data.filters.month : null);
-	// 1つの月を選んでいるか。年の一覧はどの月にも通じているので、月の新旧では分けない
-	let selectedMonth = $derived(
-		/^\d{4}-\d{2}$/.test(data.filters.month ?? '') ? data.filters.month : null
-	);
-	// 年を選んでいる間も、過去を辿っている状態には変わりない。
-	// 先々月以前の月は年の一覧から来ているので、過去への入口を重ねて出さない
-	let viewingPast = $derived(
-		data.filters.month === 'browse' ||
-			selectedYear !== null ||
-			(selectedMonth !== null && selectedMonth < data.previousYearMonth)
-	);
-
 	let makerChips = $derived([
 		{ label: 'すべて', href: link('maker', null), on: !data.filters.makerCode },
 		...data.makers.map((maker) => ({
@@ -217,13 +203,15 @@
 	});
 
 	/*
-	 * 発売時期の一覧への入口。既定では今月しか出ないので、他の月があることが分からない。
-	 * 一覧を見ている間と、検索や絞り込みの結果を見ている間は出さない。条件から外れて見えるため。
+	 * 発売時期から探す入口。既定では今月しか出ないので、他の月があることが分からない。
+	 * 一覧そのものを見ている間だけ出さない。
+	 * 行き先は条件を持たない。年ごとの件数は全体で数えており、絞った結果とは合わない。
 	 */
+	const BROWSE_HREF = '?month=browse';
 	let browseEntry = $derived(
-		!viewingPast && applied.length === 0 && !data.filters.keyword
-			? { href: link('month', 'browse'), oldestYear: data.counts.oldestYear }
-			: null
+		data.filters.month === 'browse'
+			? null
+			: { href: BROWSE_HREF, oldestYear: data.counts.oldestYear }
 	);
 
 	/* 空になった理由ごとに、言うことと次にできることを変える */
@@ -415,11 +403,6 @@
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href={browseEntry.href} class="text-note font-bold text-faint hover:text-accent">
 				発売時期から探す →
-			</a>
-		{:else if selectedYear || selectedMonth || data.filters.month === 'unknown'}
-			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-			<a href={link('month', 'browse')} class="text-note font-bold text-accent">
-				← 発売時期の一覧へ
 			</a>
 		{:else}
 			<span></span>
