@@ -38,5 +38,4 @@
 		{/if}
 	{/if}
 	<span class="text-note text-faint">{count}件</span>
-	<span class="deco-wave h-2 flex-1" aria-hidden="true"></span>
 </h2>

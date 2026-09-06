@@ -91,8 +91,3 @@ body {
 	background-image: radial-gradient(var(--dot) 1.8px, transparent 1.8px);
 	background-size: 15px 15px;
 }
-
-.deco-wave {
-	background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="8" viewBox="0 0 28 8"><path d="M0 6 Q 3.5 0, 7 4 T 14 4 T 21 4 T 28 4" fill="none" stroke="%2364bfae" stroke-width="2.4" stroke-linecap="round"/></svg>')
-		repeat-x left center / 28px 8px;
-}
