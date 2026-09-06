@@ -8,6 +8,7 @@
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 	import { formatYearMonth } from '$lib/calendar/format';
 	import FlipText from '$lib/common/components/FlipText.svelte';
+	import FlipNumber from '$lib/common/components/FlipNumber.svelte';
 	import EmptyState from '$lib/calendar/components/EmptyState.svelte';
 	import MonthGroup from '$lib/calendar/components/MonthGroup.svelte';
 	import type { MonthGroup as MonthGroupData } from '$lib/calendar/types';
@@ -283,10 +284,10 @@
 		<p class="text-heading font-bold text-white">カプセルトイの新作を、メーカー横断でチェック</p>
 		<div class="flex flex-wrap gap-2 pt-2.5" aria-label="掲載の規模">
 			<span class="rounded-full bg-white/20 px-3 py-1 text-note font-bold text-white">
-				今月の新作 {data.counts.thisMonth}件
+				今月の新作 <FlipNumber value={data.counts.thisMonth} />件
 			</span>
 			<span class="rounded-full bg-white/20 px-3 py-1 text-note font-bold text-white">
-				{data.makers.length}社 {data.counts.total.toLocaleString()}件を掲載
+				{data.makers.length}社 <FlipNumber value={data.counts.total} />件を掲載
 			</span>
 		</div>
 		<div class="flex max-w-xl items-center gap-2.5 pt-4">
