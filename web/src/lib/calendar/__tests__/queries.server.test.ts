@@ -354,27 +354,40 @@ describe('listYearCounts', () => {
 		await seed({ yearMonth: '2023-05' });
 		await seed({ yearMonth: null });
 
-		expect(await listYearCounts(db)).toEqual([
-			{
-				year: '2024',
-				count: 2,
-				months: [
-					{ yearMonth: '2024-08', count: 1 },
-					{ yearMonth: '2024-03', count: 1 }
-				]
-			},
-			{ year: '2023', count: 1, months: [{ yearMonth: '2023-05', count: 1 }] }
+		const years = await listYearCounts(db, '2026-09');
+		expect(years.map((year) => [year.year, year.count])).toEqual([
+			['2024', 2],
+			['2023', 1]
 		]);
 	});
 
-	it('未来の月も数える。発売時期はどこからでも辿れる', async () => {
-		await seed({ yearMonth: '2026-07' });
-		await seed({ yearMonth: '2027-01' });
+	it('今年までは載っていない月も 0 件で並べる', async () => {
+		await seed({ yearMonth: '2024-03' });
+		await seed({ yearMonth: '2024-08' });
 
-		expect(await listYearCounts(db)).toEqual([
-			{ year: '2027', count: 1, months: [{ yearMonth: '2027-01', count: 1 }] },
-			{ year: '2026', count: 1, months: [{ yearMonth: '2026-07', count: 1 }] }
+		const [year] = await listYearCounts(db, '2026-09');
+		// 掲載の前後は切る。3月から8月までが並ぶ
+		expect(year?.months).toEqual([
+			{ yearMonth: '2024-08', count: 1 },
+			{ yearMonth: '2024-07', count: 0 },
+			{ yearMonth: '2024-06', count: 0 },
+			{ yearMonth: '2024-05', count: 0 },
+			{ yearMonth: '2024-04', count: 0 },
+			{ yearMonth: '2024-03', count: 1 }
 		]);
+	});
+
+	it('来年以降は載っている月だけを出す', async () => {
+		await seed({ yearMonth: '2026-09' });
+		await seed({ yearMonth: '2027-02' });
+
+		const years = await listYearCounts(db, '2026-09');
+		// まだ発表されていないだけなので、0 件では並べない
+		expect(years[0]).toEqual({
+			year: '2027',
+			count: 1,
+			months: [{ yearMonth: '2027-02', count: 1 }]
+		});
 	});
 });
 

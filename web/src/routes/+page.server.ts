@@ -76,7 +76,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 		listMakers(db),
 		showsYears ? { groups: [], total: 0, hasMore: false } : listProducts(db, filters),
 		countProducts(db, currentYearMonth(0)),
-		showsYears ? listYearCounts(db) : []
+		showsYears ? listYearCounts(db, currentYearMonth(0)) : []
 	]);
 	return {
 		makers,

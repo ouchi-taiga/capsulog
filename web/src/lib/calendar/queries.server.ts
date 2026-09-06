@@ -201,7 +201,7 @@ export async function listProducts(
  * 掲載は 200 ヶ月を超え、月をそのまま並べると一覧にならない。まず年を選ばせる。
  * 年の中は月で辿れるよう、月ごとの件数も添える。
  */
-export async function listYearCounts(db: D1Database): Promise<YearCount[]> {
+export async function listYearCounts(db: D1Database, thisYearMonth: string): Promise<YearCount[]> {
 	const { results } = await db
 		.prepare(
 			`SELECT release_year_month AS yearMonth, count(*) AS count
@@ -210,17 +210,36 @@ export async function listYearCounts(db: D1Database): Promise<YearCount[]> {
 			 GROUP BY yearMonth ORDER BY yearMonth DESC`
 		)
 		.all<MonthCount>();
+	if (results.length === 0) return [];
+
+	const countOf = new Map(results.map((row) => [row.yearMonth, row.count]));
+	const oldest = results.at(-1)!.yearMonth;
+	const newest = results[0]!.yearMonth;
+	const thisYear = thisYearMonth.slice(0, 4);
 
 	const years: YearCount[] = [];
-	for (const month of results) {
-		const year = month.yearMonth.slice(0, 4);
-		const last = years.at(-1);
-		if (last && last.year === year) {
-			last.count += month.count;
-			last.months.push(month);
-		} else {
-			years.push({ year, count: month.count, months: [month] });
+	for (let year = Number(newest.slice(0, 4)); year >= Number(oldest.slice(0, 4)); year--) {
+		/*
+		 * 今年までは 12 ヶ月を並べる。載っていない月が抜けて見えると、
+		 * 集めていないのか商品が無いのかが分からない。
+		 * 来年以降はまだ発表されていないだけなので、載っている月だけを出す。
+		 */
+		const fillsYear = String(year) <= thisYear;
+		const months: MonthCount[] = [];
+		for (let month = 12; month >= 1; month--) {
+			const yearMonth = `${year}-${String(month).padStart(2, '0')}`;
+			// 掲載が始まる前の月は数に入れない。集めていない期間まで 0 件で並べない
+			if (yearMonth < oldest || yearMonth > newest) continue;
+			const count = countOf.get(yearMonth);
+			if (count === undefined && !fillsYear) continue;
+			months.push({ yearMonth, count: count ?? 0 });
 		}
+		if (months.length === 0) continue;
+		years.push({
+			year: String(year),
+			count: months.reduce((sum, month) => sum + month.count, 0),
+			months
+		});
 	}
 	return years;
 }

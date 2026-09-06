@@ -489,10 +489,17 @@
 										</a>
 									</li>
 									{#each months as month, index (month.yearMonth)}
+										{@const empty = month.count === 0}
 										<li class="fold-item" style="--order: {index + 1}">
-											<a
-												href={month.href}
-												class="pressable flex items-baseline justify-center gap-1 rounded-2xl bg-ground px-2 py-2.5 shadow-clay-sm"
+											<!-- 商品が無い月は行き先が空になるので押させない。並べるのは抜けを見せるため -->
+											<svelte:element
+												this={empty ? 'span' : 'a'}
+												href={empty ? undefined : month.href}
+												aria-disabled={empty ? 'true' : undefined}
+												class={[
+													'flex items-baseline justify-center gap-1 rounded-2xl px-2 py-2.5',
+													empty ? 'bg-ground/50 text-faint' : 'pressable bg-ground shadow-clay-sm'
+												]}
 											>
 												<span class="text-heading font-extrabold tabular-nums">
 													{Number(month.yearMonth.slice(5))}
@@ -501,7 +508,7 @@
 												<span class="pl-0.5 text-note font-bold text-faint tabular-nums">
 													{month.count}件
 												</span>
-											</a>
+											</svelte:element>
 										</li>
 									{/each}
 								</ul>
