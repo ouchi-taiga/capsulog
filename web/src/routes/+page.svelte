@@ -90,6 +90,12 @@
 		data.years.map((entry) => ({ ...entry, href: link('month', entry.year) }))
 	);
 
+	/*
+	 * 並び替えが開いている間、一覧の操作を止める。
+	 * スマホでは選択肢の下に商品が重なり、閉じる瞬間に指がそちらへ届いてしまう
+	 */
+	let sortOpen = $state(false);
+
 	let loading = $state(false);
 	let moreButton = $state<HTMLButtonElement | null>(null);
 
@@ -351,7 +357,12 @@
 	{#if data.groups.length > 0}
 		<div class="flex items-center justify-end gap-2 pt-3">
 			<span class="text-note font-bold text-faint" id="sort-label">並び替え</span>
-			<Select.Root type="single" value={data.activeSort} onValueChange={selectSort}>
+			<Select.Root
+				type="single"
+				value={data.activeSort}
+				onValueChange={selectSort}
+				bind:open={sortOpen}
+			>
 				<Select.Trigger aria-labelledby="sort-label">
 					{SORT_LABELS[data.activeSort]}
 				</Select.Trigger>
@@ -364,7 +375,8 @@
 		</div>
 	{/if}
 
-	<div class="pt-5">
+	<!-- 並び替えを開いている間は触れないようにする。閉じる指が下の商品に届くのを防ぐ -->
+	<div class="pt-5" inert={sortOpen}>
 		{#if data.years.length > 0}
 			<!-- 過去は 185 ヶ月ある。年を選ばせてから月を見せる -->
 			<ul class="flex flex-col gap-3">
