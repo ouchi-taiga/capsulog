@@ -68,7 +68,9 @@ body {
 /* 押せるものの共通の動き。ホバーで浮き、押すと沈む。
    長押しの文字選択とメニューは :active が固まる原因になるため切る */
 .pressable {
-	transition: transform 0.15s ease;
+	transition:
+		transform var(--duration-press) ease,
+		box-shadow var(--duration-press) ease;
 	touch-action: manipulation;
 	user-select: none;
 	-webkit-user-select: none;
@@ -85,9 +87,22 @@ body {
 		transform: none;
 	}
 }
+/* 押している間は影を浅くして、樹脂の塊が台に着いたように見せる。
+   影の値は種類ごとに違うので、沈む量に合わせて一段浅いものへ差し替える */
 .pressable:active {
 	transform: translateY(1px) scale(0.98);
 	filter: brightness(0.95);
+	box-shadow: var(--shadow-clay-sm);
+}
+.pressable.shadow-clay-sm:active {
+	box-shadow:
+		2px 3px 6px var(--sh),
+		-1px -1px 4px var(--hi);
+}
+/* 選択中の部品は沈んだ見た目が既定。押しても影を差し替えない */
+.pressable.shadow-clay-pressed:active,
+.pressable.shadow-clay-on-color:active {
+	box-shadow: revert-layer;
 }
 @media (prefers-reduced-motion: reduce) {
 	.pressable,
