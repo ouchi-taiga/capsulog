@@ -47,7 +47,8 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 	let fromYearMonth: string | undefined;
 	let untilYearMonth: string | undefined;
 	let year: string | undefined;
-	if (month === null && !keyword) yearMonths = [currentYearMonth(0), currentYearMonth(1)];
+	// 既定は今月。前後の送りで隣の月へ行けるので、初めから2ヶ月を混ぜる必要がない
+	if (month === null && !keyword) yearMonths = [currentYearMonth(0)];
 	else if (month === 'later') fromYearMonth = currentYearMonth(2);
 	else if (month === 'earlier') untilYearMonth = currentYearMonth(-2);
 	// 年は先々月以前の中だけを見せる。年の一覧に出した件数と合わせる
@@ -91,9 +92,6 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 		...list,
 		previousYearMonth: currentYearMonth(-1),
 		thisYearMonth: currentYearMonth(0),
-		nextYearMonth: currentYearMonth(1),
-		laterYearMonth: currentYearMonth(2),
-		earlierYearMonth: currentYearMonth(-2),
 		// sort は URL で選ばれた値、activeSort は既定を含めて実際に効いている値
 		filters: { month, makerCode, priceBand, keyword, sort },
 		activeSort: sort ?? (month === 'earlier' || year ? 'release-desc' : 'release-asc')

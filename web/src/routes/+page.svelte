@@ -12,6 +12,7 @@
 	import EmptyState from '$lib/calendar/components/EmptyState.svelte';
 	import MonthGroup from '$lib/calendar/components/MonthGroup.svelte';
 	import MonthHeading from '$lib/calendar/components/MonthHeading.svelte';
+	import BrowseRow from '$lib/calendar/components/BrowseRow.svelte';
 	import type { MonthGroup as MonthGroupData } from '$lib/calendar/types';
 
 	let { data } = $props();
@@ -29,14 +30,6 @@
 		return query ? `?${query}` : resolve('/');
 	}
 
-	function monthChip(label: string, yearMonth: string) {
-		return {
-			label: `${label} (${formatYearMonth(yearMonth).slice(5)})`,
-			href: link('month', yearMonth),
-			on: data.filters.month === yearMonth
-		};
-	}
-
 	// 選んでいる年。'YYYY' でなければ null
 	let selectedYear = $derived(/^\d{4}$/.test(data.filters.month ?? '') ? data.filters.month : null);
 	// 1つの月を選んでいるか。年の一覧はどの月にも通じているので、月の新旧では分けない
@@ -50,25 +43,6 @@
 			selectedYear !== null ||
 			(selectedMonth !== null && selectedMonth < data.previousYearMonth)
 	);
-
-	// 時系列順に並べ、既定の「今月・来月」を先月と今月の間に挟む
-	let monthChips = $derived([
-		{
-			label: `先々月以前 (〜${formatYearMonth(data.earlierYearMonth).slice(5)})`,
-			href: link('month', 'earlier'),
-			on: viewingPast
-		},
-		monthChip('先月', data.previousYearMonth),
-		{ label: '今月・来月', href: link('month', null), on: data.filters.month === null },
-		monthChip('今月', data.thisYearMonth),
-		monthChip('来月', data.nextYearMonth),
-		{
-			label: `再来月以降 (${formatYearMonth(data.laterYearMonth).slice(5)}〜)`,
-			href: link('month', 'later'),
-			on: data.filters.month === 'later'
-		},
-		{ label: '不明', href: link('month', 'unknown'), on: data.filters.month === 'unknown' }
-	]);
 
 	let makerChips = $derived([
 		{ label: 'すべて', href: link('maker', null), on: !data.filters.makerCode },
@@ -240,7 +214,8 @@
 	 * 「今月・来月」のような範囲では、どちらへ動かすかが決められない。
 	 */
 	let monthSteps = $derived.by(() => {
-		const month = data.filters.month;
+		// 既定は今月を見ている状態。month が無くても送りは出す
+		const month = data.filters.month ?? (data.filters.keyword ? null : data.thisYearMonth);
 		if (!month || !/^\d{4}-\d{2}$/.test(month)) return null;
 		const step = (offset: number) => {
 			const target = shiftYearMonth(month, offset);
@@ -402,7 +377,7 @@
 				</Popover.Trigger>
 				<Popover.Content>
 					<p class="text-heading font-extrabold">絞り込み</p>
-					{#each [['発売月', monthChips], ['メーカー', makerChips], ['価格', priceChips]] as const as [label, chips] (label)}
+					{#each [['メーカー', makerChips], ['価格', priceChips]] as const as [label, chips] (label)}
 						<div>
 							<p class="pb-2 text-note font-bold text-faint">{label}</p>
 							<div class="flex flex-wrap gap-2">
@@ -458,7 +433,7 @@
 			<a href={pastEntry.href} class="text-note font-bold text-faint hover:text-accent">
 				過去の商品を探す ({pastEntry.count.toLocaleString('ja-JP')}件) →
 			</a>
-		{:else if selectedYear || selectedMonth}
+		{:else if selectedYear || selectedMonth || data.filters.month === 'unknown'}
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href={link('month', 'earlier')} class="text-note font-bold text-accent"> ← 年の一覧へ </a>
 		{:else}
@@ -495,20 +470,21 @@
 							type="button"
 							onclick={() => (openYear = open ? null : year)}
 							aria-expanded={open}
-							class="pressable-flat flex w-full items-baseline gap-2.5 px-5 py-4 text-left"
+							class="pressable-flat w-full"
 						>
-							<span class="text-site font-extrabold tabular-nums">{year}</span>
-							<span class="text-body font-bold">年</span>
-							<span class="ml-auto text-note font-bold text-faint tabular-nums">{count}件</span>
-							<span
-								class={[
-									'text-note font-bold text-faint transition-transform',
-									open && 'rotate-180'
-								]}
-								aria-hidden="true"
-							>
-								▾
-							</span>
+							<BrowseRow title={year} unit="年" {count}>
+								{#snippet trailing()}
+									<span
+										class={[
+											'text-note font-bold text-faint transition-transform',
+											open && 'rotate-180'
+										]}
+										aria-hidden="true"
+									>
+										▾
+									</span>
+								{/snippet}
+							</BrowseRow>
 						</button>
 						<!-- 中身の実寸へ向けて開く。折り返しは画面幅で変わるので、その都度測る -->
 						<div class={['fold', open && 'fold-open']} style="--height: {heights[year] ?? 0}px">
@@ -549,6 +525,19 @@
 						</div>
 					</li>
 				{/each}
+				{#if data.counts.unknown > 0}
+					<!-- 月を持たないものは年からは辿れない。年の並びの終わりに置く -->
+					<li>
+						<!-- eslint-disable svelte/no-navigation-without-resolve -->
+						<a
+							href={link('month', 'unknown')}
+							class="pressable block rounded-3xl bg-surface shadow-clay"
+						>
+							<BrowseRow title="発売月不明" count={data.counts.unknown} />
+						</a>
+						<!-- eslint-enable svelte/no-navigation-without-resolve -->
+					</li>
+				{/if}
 			</ul>
 		{:else if groups.length === 0}
 			{#if monthSteps}

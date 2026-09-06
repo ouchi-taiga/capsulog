@@ -231,19 +231,32 @@ export async function countProducts(
 	db: D1Database,
 	yearMonth: string,
 	untilYearMonth: string
-): Promise<{ thisMonth: number; total: number; past: number; oldestYear: string | null }> {
+): Promise<{
+	thisMonth: number;
+	total: number;
+	past: number;
+	unknown: number;
+	oldestYear: string | null;
+}> {
 	const row = await db
 		.prepare(
 			`SELECT (SELECT count(*) FROM products WHERE release_year_month = ?) AS thisMonth,
 			        (SELECT count(*) FROM products WHERE release_year_month <= ?) AS past,
+			        (SELECT count(*) FROM products WHERE release_year_month IS NULL) AS unknown,
 			        (SELECT substr(min(release_year_month), 1, 4) FROM products
 			          WHERE release_year_month IS NOT NULL) AS oldestYear,
 			        count(*) AS total
 			 FROM products`
 		)
 		.bind(yearMonth, untilYearMonth)
-		.first<{ thisMonth: number; total: number; past: number; oldestYear: string | null }>();
-	return row ?? { thisMonth: 0, total: 0, past: 0, oldestYear: null };
+		.first<{
+			thisMonth: number;
+			total: number;
+			past: number;
+			unknown: number;
+			oldestYear: string | null;
+		}>();
+	return row ?? { thisMonth: 0, total: 0, past: 0, unknown: 0, oldestYear: null };
 }
 
 /*
