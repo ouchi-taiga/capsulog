@@ -78,7 +78,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 	const [makers, list, counts, years] = await Promise.all([
 		listMakers(db),
 		showsYears ? { groups: [], total: 0, hasMore: false } : listProducts(db, filters),
-		countProducts(db, currentYearMonth(0)),
+		countProducts(db, currentYearMonth(0), currentYearMonth(-2)),
 		showsYears ? listYearCounts(db, currentYearMonth(-2)) : []
 	]);
 	return {

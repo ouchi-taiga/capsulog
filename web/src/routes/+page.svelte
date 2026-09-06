@@ -212,6 +212,20 @@
 		].filter((chip) => !!chip)
 	);
 
+	/*
+	 * 過去への入口。既定では今月と来月しか出ないので、それ以前があることが分からない。
+	 * 過去を見ている間と、検索や絞り込みの結果を見ている間は出さない。条件から外れて見えるため。
+	 */
+	let pastEntry = $derived(
+		!viewingPast && applied.length === 0 && !data.filters.keyword && data.counts.past > 0
+			? {
+					href: link('month', 'earlier'),
+					count: data.counts.past,
+					oldestYear: data.counts.oldestYear
+				}
+			: null
+	);
+
 	/* 空になった理由ごとに、言うことと次にできることを変える */
 	let empty = $derived.by(() => {
 		if (isFutureMonth) {
@@ -403,7 +417,15 @@
 	{/if}
 
 	{#if groups.length > 0}
-		<div class="flex justify-end pt-3">
+		<div class="flex items-center justify-between gap-2 pt-3">
+			{#if pastEntry}
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href={pastEntry.href} class="text-note font-bold text-faint hover:text-accent">
+					過去の商品を探す ({pastEntry.count.toLocaleString('ja-JP')}件) →
+				</a>
+			{:else}
+				<span></span>
+			{/if}
 			<Select.Root
 				type="single"
 				value={data.activeSort}
@@ -462,6 +484,25 @@
 						{loading ? '読み込み中…' : 'さらに表示'}
 					</button>
 				</div>
+			{/if}
+			{#if pastEntry && !data.hasMore}
+				<!-- 読み終えた先に置く。ここまで来た人は、次に見るものを探している -->
+				<!-- eslint-disable svelte/no-navigation-without-resolve -->
+				<a
+					href={pastEntry.href}
+					class="pressable mt-8 flex items-center justify-between gap-3 rounded-3xl bg-surface px-5 py-4 shadow-clay"
+				>
+					<span>
+						<span class="text-body font-extrabold">過去の商品を探す</span>
+						<span class="block pt-0.5 text-note font-bold text-faint">
+							{pastEntry.oldestYear
+								? `${pastEntry.oldestYear}年からの${pastEntry.count.toLocaleString('ja-JP')}件`
+								: `${pastEntry.count.toLocaleString('ja-JP')}件`}
+						</span>
+					</span>
+					<span class="text-title font-extrabold text-accent">→</span>
+				</a>
+				<!-- eslint-enable svelte/no-navigation-without-resolve -->
 			{/if}
 		{/if}
 	</div>

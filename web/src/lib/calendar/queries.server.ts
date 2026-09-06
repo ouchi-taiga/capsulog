@@ -197,20 +197,24 @@ export async function listYearCounts(db: D1Database, untilYearMonth: string): Pr
 	return results;
 }
 
-/** ヒーローに出す件数。今月の新作の数と掲載の全体数 */
+/** 件数のまとめ。ヒーローに出す数と、過去へ誘う数。past は untilYearMonth 以前 */
 export async function countProducts(
 	db: D1Database,
-	yearMonth: string
-): Promise<{ thisMonth: number; total: number }> {
+	yearMonth: string,
+	untilYearMonth: string
+): Promise<{ thisMonth: number; total: number; past: number; oldestYear: string | null }> {
 	const row = await db
 		.prepare(
 			`SELECT (SELECT count(*) FROM products WHERE release_year_month = ?) AS thisMonth,
+			        (SELECT count(*) FROM products WHERE release_year_month <= ?) AS past,
+			        (SELECT substr(min(release_year_month), 1, 4) FROM products
+			          WHERE release_year_month IS NOT NULL) AS oldestYear,
 			        count(*) AS total
 			 FROM products`
 		)
-		.bind(yearMonth)
-		.first<{ thisMonth: number; total: number }>();
-	return row ?? { thisMonth: 0, total: 0 };
+		.bind(yearMonth, untilYearMonth)
+		.first<{ thisMonth: number; total: number; past: number; oldestYear: string | null }>();
+	return row ?? { thisMonth: 0, total: 0, past: 0, oldestYear: null };
 }
 
 /*
