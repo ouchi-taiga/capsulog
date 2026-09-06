@@ -103,9 +103,14 @@
 	{/if}
 </main>
 
-<a
-	href={resolve('/')}
-	class="pressable fixed bottom-5 left-4 z-10 rounded-full bg-surface px-5 py-3 text-body font-extrabold shadow-clay"
->
-	← カレンダー
-</a>
+<!-- 画面端ではなく本文の左端に置く。中身と同じ幅の枠を敷いて、その中で左に寄せる -->
+<div class="pointer-events-none fixed inset-x-0 bottom-5 z-10 px-4">
+	<div class="mx-auto max-w-2xl">
+		<a
+			href={resolve('/')}
+			class="pressable pointer-events-auto inline-block rounded-full bg-surface px-5 py-3 text-body font-extrabold shadow-clay"
+		>
+			← カレンダー
+		</a>
+	</div>
+</div>
