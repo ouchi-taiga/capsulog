@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { page } from '$app/state';
+	import { slide } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import * as Popover from '$lib/common/components/ui/popover';
@@ -38,8 +40,17 @@
 
 	// 選んでいる年。'YYYY' でなければ null
 	let selectedYear = $derived(/^\d{4}$/.test(data.filters.month ?? '') ? data.filters.month : null);
+	// 年の一覧から辿り着ける範囲。先々月以前の月を選んでいるかどうか
+	let selectedPastMonth = $derived(
+		/^\d{4}-\d{2}$/.test(data.filters.month ?? '') &&
+			(data.filters.month ?? '') < data.previousYearMonth
+			? data.filters.month
+			: null
+	);
 	// 年を選んでいる間も、過去を辿っている状態には変わりない
-	let viewingPast = $derived(data.filters.month === 'earlier' || selectedYear !== null);
+	let viewingPast = $derived(
+		data.filters.month === 'earlier' || selectedYear !== null || selectedPastMonth !== null
+	);
 
 	// 時系列順に並べ、既定の「今月・来月」を先月と今月の間に挟む
 	let monthChips = $derived([
@@ -91,8 +102,15 @@
 	} as const;
 
 	let yearLinks = $derived(
-		data.years.map((entry) => ({ ...entry, href: link('month', entry.year) }))
+		data.years.map((entry) => ({
+			...entry,
+			href: link('month', entry.year),
+			months: entry.months.map((month) => ({ ...month, href: link('month', month.yearMonth) }))
+		}))
 	);
+
+	/* 開いている年。1つだけ開く。並べたままだと 17 年分の月が縦に続く */
+	let openYear = $state<string | null>(null);
 
 	/*
 	 * 並び替えが開いている間、一覧の操作を止める。
@@ -400,7 +418,7 @@
 		</div>
 	{/if}
 
-	{#if selectedYear}
+	{#if selectedYear || selectedPastMonth}
 		<p class="pt-3">
 			<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 			<a href={link('month', 'earlier')} class="text-body font-bold text-accent">← 年の一覧へ</a>
@@ -448,18 +466,66 @@
 	<!-- 並び替えを開いている間は触れないようにする。閉じる指が下の商品に届くのを防ぐ -->
 	<div class="pt-5" inert={sortOpen}>
 		{#if data.years.length > 0}
-			<!-- 過去は 185 ヶ月ある。年を選ばせてから月を見せる -->
+			<!-- 過去は 185 ヶ月ある。年を開いて、その年すべてか月かを選ばせる -->
 			<ul class="flex flex-col gap-3">
-				{#each yearLinks as { year, count, href } (year)}
+				{#each yearLinks as { year, count, href, months } (year)}
+					{@const open = openYear === year}
 					<li>
-						<a
-							{href}
-							class="pressable flex items-baseline gap-2.5 rounded-3xl bg-surface px-5 py-4 shadow-clay"
+						<button
+							type="button"
+							onclick={() => (openYear = open ? null : year)}
+							aria-expanded={open}
+							class="pressable flex w-full items-baseline gap-2.5 rounded-3xl bg-surface px-5 py-4 text-left shadow-clay"
 						>
 							<span class="text-site font-extrabold tabular-nums">{year}</span>
 							<span class="text-body font-bold">年</span>
 							<span class="ml-auto text-note font-bold text-faint tabular-nums">{count}件</span>
-						</a>
+							<span
+								class={[
+									'text-note font-bold text-faint transition-transform',
+									open && 'rotate-180'
+								]}
+								aria-hidden="true"
+							>
+								▾
+							</span>
+						</button>
+						{#if open}
+							<!-- eslint-disable svelte/no-navigation-without-resolve -->
+							<!-- 高さを送って開閉させる。閉じるときも同じ道をたどる -->
+							<div transition:slide={{ duration: 260, easing: cubicOut }}>
+								<ul class="flex flex-wrap gap-2 px-2 pt-3">
+									<li>
+										<a
+											{href}
+											class="pressable flex items-baseline gap-1 rounded-2xl bg-ground px-4 py-2.5 shadow-clay-sm"
+										>
+											<span class="text-heading font-extrabold">すべて</span>
+											<span class="pl-0.5 text-note font-bold text-faint tabular-nums">
+												{count}件
+											</span>
+										</a>
+									</li>
+									{#each months as month (month.yearMonth)}
+										<li>
+											<a
+												href={month.href}
+												class="pressable flex items-baseline gap-1 rounded-2xl bg-ground px-4 py-2.5 shadow-clay-sm"
+											>
+												<span class="text-heading font-extrabold tabular-nums">
+													{Number(month.yearMonth.slice(5))}
+												</span>
+												<span class="text-body font-bold">月</span>
+												<span class="pl-0.5 text-note font-bold text-faint tabular-nums">
+													{month.count}件
+												</span>
+											</a>
+										</li>
+									{/each}
+								</ul>
+							</div>
+							<!-- eslint-enable svelte/no-navigation-without-resolve -->
+						{/if}
 					</li>
 				{/each}
 			</ul>

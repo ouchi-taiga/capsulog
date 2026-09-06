@@ -19,6 +19,13 @@ export type ProductListItem = {
 export type YearCount = {
 	year: string;
 	count: number;
+	/** その年の月ごとの件数。商品のある月だけが新しい順に並ぶ */
+	months: MonthCount[];
+};
+
+export type MonthCount = {
+	yearMonth: string;
+	count: number;
 };
 
 export type MonthGroup = {

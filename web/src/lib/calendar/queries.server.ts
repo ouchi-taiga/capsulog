@@ -1,5 +1,6 @@
 import type {
 	Maker,
+	MonthCount,
 	MonthGroup,
 	ProductDetail,
 	ProductListItem,
@@ -183,18 +184,31 @@ export async function listProducts(
  * 指定した月以前を年ごとにまとめた件数。新しい年から順に返す
  *
  * 過去は 185 ヶ月あり、月をそのまま並べると一覧にならない。まず年を選ばせる。
+ * 年の中は月で辿れるよう、月ごとの件数も添える。
  */
 export async function listYearCounts(db: D1Database, untilYearMonth: string): Promise<YearCount[]> {
 	const { results } = await db
 		.prepare(
-			`SELECT substr(release_year_month, 1, 4) AS year, count(*) AS count
+			`SELECT release_year_month AS yearMonth, count(*) AS count
 			 FROM products
 			 WHERE release_year_month IS NOT NULL AND release_year_month <= ?
-			 GROUP BY year ORDER BY year DESC`
+			 GROUP BY yearMonth ORDER BY yearMonth DESC`
 		)
 		.bind(untilYearMonth)
-		.all<YearCount>();
-	return results;
+		.all<MonthCount>();
+
+	const years: YearCount[] = [];
+	for (const month of results) {
+		const year = month.yearMonth.slice(0, 4);
+		const last = years.at(-1);
+		if (last && last.year === year) {
+			last.count += month.count;
+			last.months.push(month);
+		} else {
+			years.push({ year, count: month.count, months: [month] });
+		}
+	}
+	return years;
 }
 
 /** 件数のまとめ。ヒーローに出す数と、過去へ誘う数。past は untilYearMonth 以前 */
