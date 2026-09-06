@@ -27,7 +27,7 @@
 		bind:ref
 		data-slot="dialog-content"
 		class={cn(
-			'fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[75dvh] max-w-2xl flex-col gap-4 overflow-y-auto rounded-t-3xl bg-surface p-5 pb-8 text-ink outline-none',
+			'sheet-up fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[75dvh] max-w-2xl flex-col gap-4 overflow-y-auto rounded-t-3xl bg-surface p-5 text-ink outline-none',
 			className
 		)}
 		{...restProps}
