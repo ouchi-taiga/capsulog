@@ -42,14 +42,12 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 	// 検索は月の絞り込みが外れるため、指定が無いと最古の年から並ぶ。新作を探す動機に合わせる
 	const sort = requested ?? (keyword ? 'release-desc' : undefined);
 
-	// 月の指定がなければ今月と来月。検索時は全期間から探す
+	// 月の指定がなければ今月。検索時は全期間から探す
 	let yearMonths: string[] = [];
-	let fromYearMonth: string | undefined;
 	let untilYearMonth: string | undefined;
 	let year: string | undefined;
 	// 既定は今月。前後の送りで隣の月へ行けるので、初めから2ヶ月を混ぜる必要がない
 	if (month === null && !keyword) yearMonths = [currentYearMonth(0)];
-	else if (month === 'later') fromYearMonth = currentYearMonth(2);
 	else if (month === 'earlier') untilYearMonth = currentYearMonth(-2);
 	// 年は先々月以前の中だけを見せる。年の一覧に出した件数と合わせる
 	else if (month && /^\d{4}$/.test(month)) {
@@ -63,7 +61,6 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 
 	const filters: ListFilters = {
 		yearMonths,
-		fromYearMonth,
 		untilYearMonth,
 		year,
 		unknownOnly: month === 'unknown',

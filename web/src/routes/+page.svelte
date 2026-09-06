@@ -6,7 +6,7 @@
 	import * as Popover from '$lib/common/components/ui/popover';
 	import * as Select from '$lib/common/components/ui/select';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
-	import { formatYearMonth, shiftYearMonth } from '$lib/calendar/format';
+	import { shiftYearMonth } from '$lib/calendar/format';
 	import FlipText from '$lib/common/components/FlipText.svelte';
 	import FlipNumber from '$lib/common/components/FlipNumber.svelte';
 	import EmptyState from '$lib/calendar/components/EmptyState.svelte';
@@ -176,28 +176,15 @@
 	}
 
 	// これから発売の月を選んでいるか。空だったときの案内を変える
-	let isFutureMonth = $derived(
-		data.filters.month === 'later' ||
-			(!!data.filters.month && data.filters.month > data.thisYearMonth)
-	);
+	let isFutureMonth = $derived(!!data.filters.month && data.filters.month > data.thisYearMonth);
 
 	/**
 	 * 選択中の条件。既定値のままのものは出さない。
-	 * 1つの月を見ている間は月を出さない。見出しと前後の送りが現在地を示している
+	 * 月は絞り込みで選ぶものではなくなったので出さない。
+	 * どこを見ているかは見出しが、戻る道は前後の送りと年の一覧が示している。
 	 */
 	let applied = $derived(
 		[
-			data.filters.month &&
-				!selectedMonth && {
-					label:
-						{ unknown: '発売月不明', later: '再来月以降', earlier: '先々月以前' }[
-							data.filters.month
-						] ??
-						(/^\d{4}$/.test(data.filters.month)
-							? `${data.filters.month}年`
-							: formatYearMonth(data.filters.month)),
-					href: link('month', null)
-				},
 			data.filters.makerCode && {
 				label: data.makers.find((maker) => maker.code === data.filters.makerCode)?.name ?? '',
 				href: link('maker', null)
