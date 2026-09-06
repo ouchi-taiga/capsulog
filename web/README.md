@@ -7,11 +7,13 @@
 ```bash
 pnpm dev      # ローカル起動。localhost:5173
 pnpm build
-pnpm deploy
+pnpm release  # ビルドして Workers へ配る
 ```
 
 `pnpm dev` に `--host` を付けている。
 付けないと IPv6 だけで待ち受け、Dev Container のポート転送から届かない。
+
+配布のスクリプトを `deploy` と呼ばない。pnpm 自身のコマンドと名前が重なり、そちらが動く。
 
 ## 画面
 

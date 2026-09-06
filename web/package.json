@@ -15,7 +15,7 @@
 		"test:unit": "vitest",
 		"test": "pnpm test:unit --run && pnpm test:e2e",
 		"test:e2e": "playwright install && playwright test",
-		"deploy": "vite build && wrangler deploy"
+		"release": "vite build && wrangler deploy"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^5.20260829.1",
