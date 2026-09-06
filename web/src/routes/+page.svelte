@@ -495,11 +495,12 @@
 						<div class={['fold', open && 'fold-open']} style="--height: {heights[year] ?? 0}px">
 							<div bind:offsetHeight={heights[year]}>
 								<!-- eslint-disable svelte/no-navigation-without-resolve -->
-								<ul class="flex flex-wrap gap-2 px-5 pt-1 pb-5">
+								<!-- 桁数で幅が変わると右端が揃わない。等分の格子に並べる -->
+								<ul class="grid grid-cols-3 gap-2 px-5 pt-1 pb-5 sm:grid-cols-5 lg:grid-cols-7">
 									<li class="fold-item">
 										<a
 											{href}
-											class="pressable flex items-baseline gap-1 rounded-2xl bg-ground px-4 py-2.5 shadow-clay-sm"
+											class="pressable flex items-baseline justify-center gap-1 rounded-2xl bg-ground px-2 py-2.5 shadow-clay-sm"
 										>
 											<span class="text-heading font-extrabold">すべて</span>
 											<span class="pl-0.5 text-note font-bold text-faint tabular-nums">
@@ -511,7 +512,7 @@
 										<li class="fold-item" style="--order: {index + 1}">
 											<a
 												href={month.href}
-												class="pressable flex items-baseline gap-1 rounded-2xl bg-ground px-4 py-2.5 shadow-clay-sm"
+												class="pressable flex items-baseline justify-center gap-1 rounded-2xl bg-ground px-2 py-2.5 shadow-clay-sm"
 											>
 												<span class="text-heading font-extrabold tabular-nums">
 													{Number(month.yearMonth.slice(5))}
