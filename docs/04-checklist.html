@@ -397,6 +397,7 @@
       <li><label class="item"><input type="checkbox" data-id="p1-qualia" checked><span class="text">Qualia を取得できるか確認</span><span class="note">詳細が構造化されており欠損ゼロ。規約上の障害なし</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-model-fix" checked><span class="text">取得できたデータを見てデータモデルを確定</span><span class="note">発売月はNULLを許容する。ラインナップ名が取れるのは奇譚クラブのみ</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-cutout-poc" checked><span class="text">ブラウザ内の切り抜きを検証</span><span class="note">isnet_quint8（42MB）で品質・速度とも実用。2回目以降は約2秒</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-auth-method"><span class="text">認証方式を決める</span><span class="note">users の列が方式で変わる。棚とR2のキー設計より先に決める</span></label></li>
     </ul>
 
     <div class="group-label">基 盤</div>
@@ -437,6 +438,16 @@
       <li><label class="item"><input type="checkbox" data-id="p1-sort" checked><span class="text">ソート（発売時期・価格）</span><span class="note">任意</span></label></li>
     </ul>
 
+    <div class="group-label">認 証</div>
+    <ul>
+      <li><label class="item"><input type="checkbox" data-id="p1-auth"><span class="text">ユーザー登録・ログイン</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-users-schema"><span class="text">users テーブルの列を確定</span><span class="note">決めた方式に合わせて追加する</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-terms"><span class="text">利用規約・プライバシーポリシーの掲載</span><span class="note">Xハンドルの扱いと当事者間責任を明記</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-report"><span class="text">通報と削除申立ての窓口</span><span class="note">権利者からの申立てにも使う</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-fav"><span class="text">お気に入り・入手済みの印</span><span class="note">入手済みは撮影への導線</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-ics"><span class="text">発売リマインド</span><span class="note">iCal フィード配信。通知は端末のカレンダー</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-my-item"><span class="text">自分用の商品追加（非公開）</span><span class="note">バンダイ等。マスタに入れない</span></label></li>
+    </ul>
     <div class="group-label">棚</div>
     <ul>
       <li><label class="item"><input type="checkbox" data-id="p1-shelf-cut"><span class="text">撮影写真の自動切り抜き</span><span class="note">端末内で処理。生画像をサーバーに送らない</span></label></li>
@@ -470,19 +481,9 @@
     </div>
     <div class="bar"><span data-bar></span></div>
 
-    <div class="group-label">基 盤</div>
-    <ul>
-      <li><label class="item"><input type="checkbox" data-id="p2-auth"><span class="text">ユーザー登録・ログイン</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-fav"><span class="text">お気に入り・入手済みの印</span><span class="note">入手済みは撮影への導線</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-ics"><span class="text">発売リマインド</span><span class="note">iCal フィード配信。通知は端末のカレンダー</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-my-item"><span class="text">自分用の商品追加（非公開）</span><span class="note">バンダイ等。マスタに入れない</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-pwa"><span class="text">PWA化</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-terms"><span class="text">利用規約・プライバシーポリシーの掲載</span><span class="note">Xハンドルの扱いと当事者間責任を明記</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p2-report"><span class="text">通報と削除申立ての窓口</span><span class="note">権利者からの申立てにも使う</span></label></li>
-    </ul>
-
     <div class="group-label">機 能</div>
     <ul>
+      <li><label class="item"><input type="checkbox" data-id="p2-pwa"><span class="text">PWA化</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p2-entry"><span class="text">譲・求の登録</span><span class="note">棚のアイテムから、またはフリーテキスト。マスタには入れない</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p2-suggest"><span class="text">入力時のマスタ候補提示</span><span class="note">選べば厳密マッチが効く</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p2-area"><span class="text">ホームエリアの登録</span><span class="note">行ける場所。重なる人同士だけマッチ</span></label></li>
