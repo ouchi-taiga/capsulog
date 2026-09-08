@@ -35,10 +35,14 @@ sqlite3 で直接開ける。
 | `makers` | メーカー | 収集対象のメーカー |
 | `products` | 商品 | 商品。「○○シリーズ 全5種」の単位 |
 | `variants` | ラインナップ | 全5種の1種1種。タイプA、シークレットなど |
+| `users` | ユーザー | 登録したユーザー |
+| `user_identities` | 認証情報 | ログイン手段。1人が複数持てる |
+| `sessions` | セッション | ログイン中の印 |
+| `auth_tokens` | 確認トークン | メール確認とパスワードリセット |
 
 マスタに書き込むのは収集バッチと運営だけ。**ユーザー入力はマスタに入れない。**
 
-フェーズ2以降で `users`（ユーザー）、`match_entries`（譲・求）、`user_collections`（所持記録）が加わる。
+フェーズ2以降で `match_entries`（譲・求）、`user_collections`（所持記録）が加わる。
 
 ## テーブル定義
 
@@ -155,23 +159,97 @@ JAN 専用のカラムは作らない。埋まるのが1社だけになるため
 画像がない分の情報量は、ラインナップ名の表示で補う。
 「全5種」の中身を出せるのは奇譚クラブだけであり、競合にない要素でもある。
 
-## フェーズ2以降のテーブル
+## 認証のテーブル
 
-`users` は認証方式を決めてから列を足す。
-方式によって必要な列が変わるため、今は `id` だけ置く。
-
-| 方式 | 増える列 |
-|---|---|
-| メールとパスワード | `email` `password_hash` |
-| OAuth | `provider` `provider_user_id` |
-| パスキー | 公開鍵は別テーブル |
+ログインは Google の OAuth とメール+パスワードの両方を受ける。
 
 ```sql
 CREATE TABLE users (
-  id         INTEGER PRIMARY KEY,
-  created_at TEXT NOT NULL
+  id                    INTEGER PRIMARY KEY,
+  email                 TEXT UNIQUE,   -- 確認済みのものだけ。退会時に NULL
+  display_name          TEXT,
+  x_handle              TEXT,          -- X のユーザー名。@ は含めない
+  ical_token            TEXT UNIQUE,   -- 購読 URL に載せる。漏れたら再発行する
+  agreed_terms_version  TEXT,          -- 同意した規約の版
+  created_at            TEXT NOT NULL,
+  updated_at            TEXT NOT NULL,
+  deleted_at            TEXT           -- 退会時刻。NULL なら在籍中
 );
 
+CREATE TABLE user_identities (
+  id               INTEGER PRIMARY KEY,
+  user_id          INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  provider         TEXT    NOT NULL,   -- 'google' | 'password'
+  provider_user_id TEXT    NOT NULL,   -- google は sub、password はメールアドレス
+  password_hash    TEXT,               -- password のときだけ入る
+  created_at       TEXT    NOT NULL,
+  updated_at       TEXT    NOT NULL,
+  UNIQUE (provider, provider_user_id)
+);
+
+CREATE TABLE sessions (
+  id         TEXT    PRIMARY KEY,   -- ランダムなトークン
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  expires_at TEXT    NOT NULL,
+  created_at TEXT    NOT NULL
+);
+
+CREATE TABLE auth_tokens (
+  id         TEXT    PRIMARY KEY,   -- ランダムなトークン
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  purpose    TEXT    NOT NULL,      -- 'email_verify' | 'password_reset'
+  expires_at TEXT    NOT NULL,
+  used_at    TEXT,                  -- 使ったら入れる。1回で使い切る
+  created_at TEXT    NOT NULL
+);
+
+CREATE INDEX idx_identities_user  ON user_identities(user_id);
+CREATE INDEX idx_sessions_user    ON sessions(user_id);
+CREATE INDEX idx_auth_tokens_user ON auth_tokens(user_id);
+```
+
+**認証情報を `users` から分ける。**
+方式が増えても列が増えず、行が増えるだけで済む。
+1人が Google とパスワードの両方を持てる。
+
+**`users.email` には確認済みのアドレスだけを入れる。**
+アカウントを繋ぐキーになるため。
+他人のアドレスでパスワード登録できると、その人の Google ログインを乗っ取れる。
+確認が済むまでは `user_identities.provider_user_id` にだけ持つ。
+
+**同じメールなら同じユーザーに繋ぐ。**
+Google とパスワードで別々のアカウントができると、棚が消えたように見える。
+
+**セッションは D1 に置く。**
+署名付きトークンにすると、発行後に無効化する手段がなくなる。
+ログアウト・パスワード変更・退会で即座に失効させる。
+
+期限切れの行は、ログインでセッションを作るときにそのユーザーの分をまとめて消す。
+掃除のためのスケジューラを持たない。
+
+**退会は `deleted_at` を入れる論理削除にする。**
+フェーズ2の相互評価は、相手が退会しても残らなければ意味がない。
+参照する側のクエリは `deleted_at IS NULL` を必ず含める。
+
+退会時に `email` を NULL にする。
+個人情報を残さず、同じアドレスで登録し直せる。棚は引き継がない。
+
+`user_identities` と `sessions` と `auth_tokens` は退会で物理削除する。
+論理削除では `ON DELETE CASCADE` が働かないため、退会の処理で明示的に消す。
+
+**`ical_token` は購読 URL に載せる。**
+カレンダーアプリは Cookie を送らないため、セッションで認証できない。
+漏れたときは再発行して古い URL を無効にする。
+
+**`agreed_terms_version` は同意した規約の版を持つ。**
+改定したとき、古い版のまま使っている人にだけ再同意を求められる。
+
+**`x_handle` は本人が入力する。** X のログインからは取らない。
+開示するのはマッチが成立して相互に同意したときだけで、ログイン時に取ると同意の粒度が合わない。
+
+## フェーズ2以降のテーブル
+
+```sql
 CREATE TABLE match_entries (      -- 譲・求
   id              INTEGER PRIMARY KEY,
   user_id         INTEGER NOT NULL REFERENCES users(id),
