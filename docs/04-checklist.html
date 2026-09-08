@@ -397,7 +397,7 @@
       <li><label class="item"><input type="checkbox" data-id="p1-qualia" checked><span class="text">Qualia を取得できるか確認</span><span class="note">詳細が構造化されており欠損ゼロ。規約上の障害なし</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-model-fix" checked><span class="text">取得できたデータを見てデータモデルを確定</span><span class="note">発売月はNULLを許容する。ラインナップ名が取れるのは奇譚クラブのみ</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-cutout-poc" checked><span class="text">ブラウザ内の切り抜きを検証</span><span class="note">isnet_quint8（42MB）で品質・速度とも実用。2回目以降は約2秒</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p1-auth-method"><span class="text">認証方式を決める</span><span class="note">users の列が方式で変わる。棚とR2のキー設計より先に決める</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-auth-method" checked><span class="text">認証方式を決める</span><span class="note">Google の OAuth とメール+パスワードの両方。同じメールなら同一ユーザーに繋ぐ</span></label></li>
     </ul>
 
     <div class="group-label">基 盤</div>
@@ -440,8 +440,10 @@
 
     <div class="group-label">認 証</div>
     <ul>
-      <li><label class="item"><input type="checkbox" data-id="p1-auth"><span class="text">ユーザー登録・ログイン</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p1-users-schema"><span class="text">users テーブルの列を確定</span><span class="note">決めた方式に合わせて追加する</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-users-schema"><span class="text">users テーブルの列を確定</span><span class="note">users と user_identities に分ける。方式が増えても列が増えない</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-auth-oauth"><span class="text">Google でのログイン</span><span class="note">セッションとCookieの土台をここで作る</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-auth-mail"><span class="text">メール+パスワードでのログイン</span><span class="note">確認メールとリセット。送信は Resend</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-auth-merge"><span class="text">同じメールのアカウントを繋ぐ</span><span class="note">Google とパスワードで別々の棚ができないようにする</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-terms"><span class="text">利用規約・プライバシーポリシーの掲載</span><span class="note">Xハンドルの扱いと当事者間責任を明記</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-report"><span class="text">通報と削除申立ての窓口</span><span class="note">権利者からの申立てにも使う</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-fav"><span class="text">お気に入り・入手済みの印</span><span class="note">入手済みは撮影への導線</span></label></li>
