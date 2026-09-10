@@ -410,7 +410,8 @@
       <li><label class="item"><input type="checkbox" data-id="p1-sveltekit" checked><span class="text">SvelteKit プロジェクトの初期化</span><span class="note">adapter-cloudflare。Tailwind・Vitest・Playwright</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-schema" checked><span class="text">D1 のスキーマ作成</span><span class="note">ローカルとリモートに適用済み。メーカー6行を投入</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-deploy" checked><span class="text">Workers へのデプロイ</span><span class="note">capsulog.capsulog.workers.dev</span></label></li>
-      <li><label class="item"><input type="checkbox" data-id="p1-r2"><span class="text">R2 バケットの用意</span><span class="note">棚の切り抜き画像を置く</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-r2"><span class="text">R2 バケットの用意</span><span class="note">棚の切り抜き画像を置く。カスタムドメインを繋いで CDN キャッシュに載せる</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-r2-limit"><span class="text">アップロードの上限とログイン必須化</span><span class="note">置き場として使われないようにする。1枚2MB、枚数に上限</span></label></li>
     </ul>
 
     <div class="group-label">収 集 バ ッ チ</div>
@@ -459,6 +460,9 @@
       <li><label class="item"><input type="checkbox" data-id="p1-shelf-share"><span class="text">共有画像の生成</span><span class="note">X 投稿用。拡散の主導線</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-shelf-link"><span class="text">商品マスタへの紐付け</span><span class="note">任意。フェーズ2のマッチ精度に効く</span></label></li>
       <li><label class="item"><input type="checkbox" data-id="p1-shelf-rate"><span class="text">コンプ率の表示</span><span class="note">任意。奇譚クラブのみ成立</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-shelf-public"><span class="text">写真の公開</span><span class="note">任意。1枚ずつ選ぶ。既定は非公開。紐付いたものだけ</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-shelf-feed"><span class="text">公開写真の流し見</span><span class="note">任意。一覧の先頭で横に流す。未ログインでも見える</span></label></li>
+      <li><label class="item"><input type="checkbox" data-id="p1-shelf-browse"><span class="text">他人の棚を見る</span><span class="note">任意。飾ってあるものをタップすると商品情報が出る</span></label></li>
     </ul>
 
     <div class="group-label">達 成 基 準</div>
