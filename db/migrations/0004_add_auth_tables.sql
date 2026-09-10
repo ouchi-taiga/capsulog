@@ -25,10 +25,13 @@ CREATE TABLE user_identities (
   UNIQUE (provider, provider_user_id)
 );
 
+-- id はトークンの SHA-256。DB が漏れても、そのままでは使えない
 CREATE TABLE sessions (
-  id         TEXT    PRIMARY KEY,   -- ランダムなトークン
+  id         TEXT    PRIMARY KEY,
+  family_id  TEXT    NOT NULL,   -- 同じログインから派生した系列。盗難時はこの単位で失効させる
   user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   expires_at TEXT    NOT NULL,
+  rotated_at TEXT,               -- 置き換えた時刻。猶予の間だけ古い方も受け付ける
   created_at TEXT    NOT NULL
 );
 
@@ -41,6 +44,7 @@ CREATE TABLE auth_tokens (
   created_at TEXT    NOT NULL
 );
 
-CREATE INDEX idx_identities_user  ON user_identities(user_id);
-CREATE INDEX idx_sessions_user    ON sessions(user_id);
-CREATE INDEX idx_auth_tokens_user ON auth_tokens(user_id);
+CREATE INDEX idx_identities_user   ON user_identities(user_id);
+CREATE INDEX idx_sessions_user     ON sessions(user_id);
+CREATE INDEX idx_sessions_family   ON sessions(family_id);
+CREATE INDEX idx_auth_tokens_user  ON auth_tokens(user_id);
