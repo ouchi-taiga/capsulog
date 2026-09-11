@@ -1,23 +1,25 @@
 """確認されないまま期限が切れた仮登録を消す。"""
 
+import datetime
+
 NAME = "pending_users"
 
-# 仮登録は users.email が NULL の行。確認が済むとメールが入る。
-# 有効な確認トークンが残っているものは、まだ待っている途中なので消さない
+# 確認メールのトークンの寿命。これを過ぎたら、もう確認されない
+VERIFY_HOURS = 24
+
+# 仮登録は emailVerified が 0 の行。
+# トークンの identifier はハッシュで入るため、メールアドレスでは突き合わせられない。
+# 代わりに、登録からトークンの寿命を過ぎたかどうかで判定する
 SELECT = """
-    SELECT u.id FROM users u
-    WHERE u.email IS NULL AND u.deleted_at IS NULL
-      AND NOT EXISTS (
-        SELECT 1 FROM auth_tokens t
-        WHERE t.user_id = u.id AND t.purpose = 'email_verify'
-          AND t.used_at IS NULL AND t.expires_at > ?
-      )
+    SELECT id FROM users
+    WHERE emailVerified = 0 AND deletedAt IS NULL AND createdAt <= ?
 """
 
 
 def run(db, now: str, dry_run: bool) -> int:
-    """消した件数を返す。user_identities と auth_tokens は CASCADE で消える。"""
-    ids = [r["id"] for r in db.query(SELECT, [now])]
+    """消した件数を返す。user_identities と sessions は CASCADE で消える。"""
+    limit = datetime.datetime.fromisoformat(now) - datetime.timedelta(hours=VERIFY_HOURS)
+    ids = [r["id"] for r in db.query(SELECT, [limit.isoformat(timespec="seconds")])]
     if ids and not dry_run:
         placeholders = ", ".join("?" for _ in ids)
         db.query(f"DELETE FROM users WHERE id IN ({placeholders})", ids)

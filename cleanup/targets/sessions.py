@@ -1,12 +1,11 @@
 """期限が切れたセッションを消す。
 
-ログインのたびにそのユーザーの分は消しているが、
-二度と来ないユーザーの行は残る。それをここで回収する。
+Better Auth は期限切れの行を消さない。放っておくと溜まり続ける。
 """
 
 NAME = "sessions"
 
-WHERE = "FROM sessions WHERE expires_at <= ?"
+WHERE = "FROM sessions WHERE expiresAt <= ?"
 
 
 def run(db, now: str, dry_run: bool) -> int:

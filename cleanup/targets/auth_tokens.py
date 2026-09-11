@@ -1,8 +1,11 @@
-"""期限が切れたトークンと、使い終わったトークンを消す。"""
+"""期限が切れた確認トークンを消す。
+
+使い終わったトークンは Better Auth がその場で消す。ここで拾うのは期限切れだけ。
+"""
 
 NAME = "auth_tokens"
 
-WHERE = "FROM auth_tokens WHERE expires_at <= ? OR used_at IS NOT NULL"
+WHERE = "FROM auth_tokens WHERE expiresAt <= ?"
 
 
 def run(db, now: str, dry_run: bool) -> int:
