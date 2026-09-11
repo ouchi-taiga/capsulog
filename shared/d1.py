@@ -82,6 +82,9 @@ class LocalD1:
             )
         self._con = sqlite3.connect(paths[0])
         self._con.row_factory = sqlite3.Row
+        # SQLite は既定で外部キー制約を見ない。本番の D1 は見るため、
+        # 有効にしておかないと CASCADE の有無がローカルと本番で食い違う
+        self._con.execute("PRAGMA foreign_keys = ON")
 
     def query(self, sql: str, params: list | None = None) -> list[dict]:
         """SQL を実行し、結果行を dict のリストで返す。実行ごとにコミットする。"""

@@ -7,6 +7,8 @@
 | ディレクトリ | 役割 | 言語 | README |
 |---|---|---|---|
 | `batch/` | メーカーからのデータ収集。日次実行 | Python | [batch/README.md](./batch/README.md) |
+| `cleanup/` | 期限切れの行の削除。日次実行 | Python | [cleanup/README.md](./cleanup/README.md) |
+| `shared/` | batch と cleanup で共有するもの | Python | — |
 | `web/` | 画面と API。Cloudflare Workers 上で動く | SvelteKit | [web/README.md](./web/README.md) |
 | `db/` | D1 のスキーマとマイグレーション | SQL | [db/README.md](./db/README.md) |
 | `probe/` | 各メーカーからデータが取れるかの検証 | Python | [probe/README.md](./probe/README.md) |

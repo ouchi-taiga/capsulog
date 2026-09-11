@@ -13,6 +13,7 @@ target/
 
 # ログ
 batch/logs/
+cleanup/logs/
 
 # ビルド成果物
 build/

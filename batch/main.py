@@ -14,9 +14,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent / "shared"))
 
 import d1
-from makers import JST, kitan, parade, qualia, takaratomy, tarlin
+import logging_setup
+from makers import kitan, parade, qualia, takaratomy, tarlin
 from validate import check
 
 logger = logging.getLogger("batch")
@@ -54,32 +56,6 @@ UPSERT = (
     f"ON CONFLICT (maker_id, source_id) DO UPDATE SET {_UPDATES} "
     "WHERE products.origin = 'batch'"
 )
-
-
-def setup_logging():
-    """stdout と batch/logs/ の2箇所に流す。
-
-    stdout は GitHub Actions のジョブログ用。ファイルは手元での実行を残す用で、
-    info.log に全部、error.log に WARNING 以上だけを追記する。
-    時刻は発売月の扱いと同じく日本時間で出す。
-    """
-    logging.Formatter.converter = lambda *_: datetime.datetime.now(JST).timetuple()
-    fmt = logging.Formatter(
-        "%(asctime)s %(levelname)-7s %(filename)s:%(lineno)d %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
-    log_dir = Path(__file__).parent / "logs"
-    log_dir.mkdir(exist_ok=True)
-
-    handlers = [
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(log_dir / "info.log", encoding="utf-8"),
-        logging.FileHandler(log_dir / "error.log", encoding="utf-8"),
-    ]
-    handlers[2].setLevel(logging.WARNING)
-    for h in handlers:
-        h.setFormatter(fmt)
-    logging.basicConfig(level=logging.INFO, handlers=handlers)
 
 
 class MakerLog(logging.LoggerAdapter):
@@ -233,7 +209,7 @@ def main():
     ap.add_argument("--limit", type=int, help="詳細取得の上限。検証用")
     args = ap.parse_args()
 
-    setup_logging()
+    logging_setup.setup(Path(__file__).parent / "logs")
     logger.info(
         f"開始 mode={'full' if args.full else 'daily'} "
         f"target={os.environ.get('D1_TARGET', 'local')}"

@@ -1,0 +1,31 @@
+# 期限切れの行の削除。毎朝4時(JST)に本番の D1 から消す。
+# 実行には リポジトリの secret CLOUDFLARE_API_TOKEN が要る。
+name: cleanup
+
+on:
+  schedule:
+    - cron: "0 19 * * *" # 04:00 JST
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "数えるだけで消さない"
+        type: boolean
+        default: false
+
+# 前の実行が残っていたら重ねない
+concurrency:
+  group: cleanup
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: 削除
+        run: uv run --no-dev cleanup/main.py ${{ inputs.dry-run == true && '--dry-run' || '' }}
+        env:
+          D1_TARGET: remote
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
