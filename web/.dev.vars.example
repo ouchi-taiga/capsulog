@@ -1,0 +1,11 @@
+# .dev.vars にコピーして値を入れる。.dev.vars はコミットしない
+# 本番は wrangler secret put で入れる
+
+# Cookie の署名に使う。openssl rand -base64 32 などで作る
+BETTER_AUTH_SECRET=
+BETTER_AUTH_URL=http://localhost:5173
+
+# Google Cloud Console の OAuth 2.0 クライアント ID
+# 承認済みのリダイレクト URI に http://localhost:5173/api/auth/callback/google を入れる
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=

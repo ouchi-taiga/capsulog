@@ -40,6 +40,8 @@ sqlite3 で直接開ける。
 | `sessions` | セッション | ログイン中の印 |
 | `auth_tokens` | 確認トークン | メール確認とパスワードリセット |
 
+下の4つは Better Auth が読み書きする。マスタとは分けて考える。
+
 マスタに書き込むのは収集バッチと運営だけ。**ユーザー入力はマスタに入れない。**
 
 フェーズ2以降で `match_entries`（譲・求）、`user_collections`（所持記録）が加わる。
@@ -161,115 +163,96 @@ JAN 専用のカラムは作らない。埋まるのが1社だけになるため
 
 ## 認証のテーブル
 
-ログインは Google の OAuth とメール+パスワードの両方を受ける。
+**Better Auth が読み書きする。** 列の構成は Better Auth が決める。
+テーブル名だけ `modelName` で既存の呼び方に寄せている。
 
 ```sql
 CREATE TABLE users (
-  id                    INTEGER PRIMARY KEY,
-  email                 TEXT UNIQUE,   -- 確認済みのものだけ。退会時に NULL
-  display_name          TEXT,
-  x_handle              TEXT,          -- X のユーザー名。@ は含めない
-  ical_token            TEXT UNIQUE,   -- 購読 URL に載せる。漏れたら再発行する
-  agreed_terms_version  TEXT,          -- 同意した規約の版
-  created_at            TEXT NOT NULL,
-  updated_at            TEXT NOT NULL,
-  deleted_at            TEXT           -- 退会時刻。NULL なら在籍中
+  id                 INTEGER NOT NULL PRIMARY KEY,
+  name               TEXT    NOT NULL,
+  email              TEXT    NOT NULL UNIQUE,
+  emailVerified      INTEGER NOT NULL,   -- 確認が済むまでログインさせない
+  image              TEXT,
+  createdAt          DATE    NOT NULL,
+  updatedAt          DATE    NOT NULL,
+  xHandle            TEXT,               -- X のユーザー名。@ は含めない
+  icalToken          TEXT,               -- 購読 URL に載せる。漏れたら再発行する
+  agreedTermsVersion TEXT,               -- 同意した規約の版
+  deletedAt          DATE                -- 退会時刻。弾くのはアプリ側
+);
+
+CREATE TABLE sessions (
+  id        INTEGER NOT NULL PRIMARY KEY,
+  expiresAt DATE    NOT NULL,
+  token     TEXT    NOT NULL UNIQUE,
+  createdAt DATE    NOT NULL,
+  updatedAt DATE    NOT NULL,
+  ipAddress TEXT,
+  userAgent TEXT,
+  userId    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE user_identities (
-  id               INTEGER PRIMARY KEY,
-  user_id          INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  provider         TEXT    NOT NULL,   -- 'google' | 'password'
-  provider_user_id TEXT    NOT NULL,   -- google は sub、password はメールアドレス
-  password_hash    TEXT,               -- password のときだけ入る
-  created_at       TEXT    NOT NULL,
-  updated_at       TEXT    NOT NULL,
-  UNIQUE (provider, provider_user_id)
-);
-
--- id はトークンの SHA-256。DB が漏れても、そのままでは使えない
-CREATE TABLE sessions (
-  id         TEXT    PRIMARY KEY,
-  family_id  TEXT    NOT NULL,   -- 同じログインから派生した系列。盗難時はこの単位で失効させる
-  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  expires_at TEXT    NOT NULL,
-  rotated_at TEXT,               -- 置き換えた時刻。猶予の間だけ古い方も受け付ける
-  created_at TEXT    NOT NULL
+  id                    INTEGER NOT NULL PRIMARY KEY,
+  accountId             TEXT    NOT NULL,
+  providerId            TEXT    NOT NULL,   -- 'google' | 'credential'
+  userId                INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  accessToken           TEXT,               -- 暗号化して入る
+  refreshToken          TEXT,
+  idToken               TEXT,
+  accessTokenExpiresAt  DATE,
+  refreshTokenExpiresAt DATE,
+  scope                 TEXT,
+  password              TEXT,               -- credential のときだけ入る
+  createdAt             DATE    NOT NULL,
+  updatedAt             DATE    NOT NULL
 );
 
 CREATE TABLE auth_tokens (
-  id         TEXT    PRIMARY KEY,   -- ランダムなトークン
-  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  purpose    TEXT    NOT NULL,      -- 'email_verify' | 'password_reset'
-  expires_at TEXT    NOT NULL,
-  used_at    TEXT,                  -- 使ったら入れる。1回で使い切る
-  created_at TEXT    NOT NULL
+  id         INTEGER NOT NULL PRIMARY KEY,
+  identifier TEXT    NOT NULL,   -- ハッシュで入る
+  value      TEXT    NOT NULL,
+  expiresAt  DATE    NOT NULL,
+  createdAt  DATE    NOT NULL,
+  updatedAt  DATE    NOT NULL
 );
 
-CREATE INDEX idx_identities_user   ON user_identities(user_id);
-CREATE INDEX idx_sessions_user     ON sessions(user_id);
-CREATE INDEX idx_sessions_family   ON sessions(family_id);
-CREATE INDEX idx_auth_tokens_user  ON auth_tokens(user_id);
+CREATE INDEX sessions_userId_idx        ON sessions(userId);
+CREATE INDEX user_identities_userId_idx ON user_identities(userId);
+CREATE INDEX auth_tokens_identifier_idx ON auth_tokens(identifier);
 ```
 
-**認証情報を `users` から分ける。**
-方式が増えても列が増えず、行が増えるだけで済む。
-1人が Google とパスワードの両方を持てる。
+列を足すときは `web/src/lib/auth/auth.server.ts` の `additionalFields` に書き、
+`better-auth generate` で出た SQL を新しいマイグレーションにする。
+手で列を足すと、Better Auth が知らない列になる。
 
-**`users.email` には確認済みのアドレスだけを入れる。**
-アカウントを繋ぐキーになるため。
-他人のアドレスでパスワード登録できると、その人の Google ログインを乗っ取れる。
-確認が済むまでは `user_identities.provider_user_id` にだけ持つ。
+**独自の列は4つ。** `xHandle` `icalToken` `agreedTermsVersion` `deletedAt`。
+Better Auth はこれらを読み書きするだけで、意味は解釈しない。
+
+**ログイン手段を `user_identities` に分けて持つ。**
+1人が Google とパスワードの両方を持てる。`providerId` で区別する。
 
 **同じメールなら同じユーザーに繋ぐ。**
 Google とパスワードで別々のアカウントができると、棚が消えたように見える。
+繋ぐのは確認済みのメールのときだけ。未確認だと他人のアドレスを名乗れる。
 
-**セッションは D1 に置く。**
-署名付きトークンにすると、発行後に無効化する手段がなくなる。
-ログアウト・パスワード変更・退会で即座に失効させる。
+**`emailVerified` が 0 の間はログインさせない。**
+他人のアドレスで登録したアカウントを動かさないため。
+確認が済むまでの行も `users` に入る。仮登録を別のテーブルには分けない。
 
-**`id` にはトークンのハッシュを入れる。** 生の値は Cookie にだけ持つ。
-DB が漏れても、そのままではログインに使えない。
+**セッションのトークンは平文で入る。** DB が漏れれば、そのままログインに使える。
+Cookie 側は署名され、`httpOnly` と `secure` が付く。
 
-**セッションを定期的に置き換え、古い ID の再使用で盗難を検知する。**
-本人と攻撃者が同じトークンを使うため、いずれか一方が置き換え済みの ID を出す。
-検知したらその `family_id` をまとめて失効させる。他の端末は巻き込まない。
+**確認とリセットのトークンはハッシュで入る。**
+`storeIdentifier` を `hashed` にしている。
 
-置き換えてから30秒は古い ID も受け付ける。
-並行するリクエストが差し替え前のまま届くため、即座に無効化すると本人が失効する。
-
-寿命は7日。使っている間は延長し、残りが半分を切ったときだけ書き換える。
-
-期限切れの行は、ログインでセッションを作るときにそのユーザーの分をまとめて消す。
-掃除のためのスケジューラを持たない。
-
-**退会は `deleted_at` を入れる論理削除にする。**
+**退会は `deletedAt` を入れる論理削除にする。**
 フェーズ2の相互評価は、相手が退会しても残らなければ意味がない。
-参照する側のクエリは `deleted_at IS NULL` を必ず含める。
 
-退会時に `email` を NULL にする。
-個人情報を残さず、同じアドレスで登録し直せる。棚は引き継がない。
+**ログインを弾くのは `hooks.server.ts`。** 参照する側のクエリも `deletedAt IS NULL` を必ず含める。
 
-`user_identities` と `sessions` と `auth_tokens` は退会で物理削除する。
-論理削除では `ON DELETE CASCADE` が働かないため、退会の処理で明示的に消す。
-
-**`ical_token` は購読 URL に載せる。**
-カレンダーアプリは Cookie を送らないため、セッションで認証できない。
-漏れたときは再発行して古い URL を無効にする。
-
-**`agreed_terms_version` は同意した規約の版を持つ。**
-改定したとき、古い版のまま使っている人にだけ再同意を求められる。
-
-**`x_handle` は本人が入力する。** X のログインからは取らない。
-開示するのはマッチが成立して相互に同意したときだけで、ログイン時に取ると同意の粒度が合わない。
-
-**`provider` に CHECK 制約を付けない。**
-パスキーのような方式が増えたときに、行を足すだけで済ませる。
-SQLite は CHECK を後から変更できず、付けるとテーブルの作り直しになる。
-公開鍵を持つ方式は `user_passkeys` を別に作る。
-
-アイコンは棚の写真から1枚選ぶ。参照する列は `display_items` を作るときに足す。
-アップロードの経路を増やさず、審査の対象も増やさないため。
+**期限切れの行は溜まる。** `cleanup/` の日次バッチが、期限切れのセッションとトークン、
+確認されないまま24時間を過ぎた仮登録を消す。
 
 ## フェーズ2以降のテーブル
 

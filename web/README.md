@@ -107,6 +107,51 @@ const { results } = await platform.env.DB
 
 行の型は各機能の `types.ts` に置き、queries と画面で共有する。
 
+## 認証
+
+Better Auth に任せる。Google のログインとメール+パスワードの両方を受ける。
+
+設定は `lib/auth/auth.server.ts` の `createAuth()` に置く。
+**リクエストごとに作る。** D1 のバインディングはリクエストの中でしか取れない。
+
+`hooks.server.ts` がセッションを読んで `locals.user` に載せる。
+ログインしていなければ null。
+
+```ts
+export const load: PageServerLoad = async ({ locals }) => {
+  if (!locals.user) redirect(302, '/login');
+  return { userId: locals.user.id };
+};
+```
+
+画面で使うときは `+layout.server.ts` で返す。`page.data.user` で全ページから読める。
+
+`/api/auth/` 以下は Better Auth が受け持つ。自分で route を切らない。
+
+### 秘匿値
+
+`.dev.vars` に置く。コミットしない。本番は `wrangler secret put` で入れる。
+
+| 名前 | 中身 |
+|---|---|
+| `BETTER_AUTH_SECRET` | Cookie の署名に使う。十分に長い乱数 |
+| `BETTER_AUTH_URL` | サイトの URL |
+| `GOOGLE_CLIENT_ID` | Google Cloud Console で作る |
+| `GOOGLE_CLIENT_SECRET` | 同上 |
+
+### 決めたこと
+
+**確認が済むまでログインさせない。** 他人のアドレスで登録したものを動かさないため。
+
+**同じメールなら同じユーザーに繋ぐ。** 確認済みのときだけ。
+Google とパスワードで別々のアカウントができると、棚が消えたように見える。
+
+**退会は論理削除。** `deletedAt` を入れる。**弾くのは `hooks.server.ts`。**
+
+**期限切れの行は溜まる。** `cleanup/` の日次バッチが消す。
+
+セッションのトークンは DB に平文で入る。
+
 ## 書き方
 
 ### Svelte
